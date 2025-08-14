@@ -42,7 +42,7 @@
   - 實作響應式佈局和暗色模式支援
   - _需求: 13.1, 13.2, 13.3, 13.4_
 
-- [ ] 5. 實作專案管理 API
+- [x] 5. 實作專案管理 API
   - 建立 POST /api/v1/projects 端點 (建立專案)
   - 建立 GET /api/v1/projects 端點 (列出專案)
   - 建立 GET /api/v1/projects/[id] 端點 (取得專案詳情)
@@ -50,7 +50,7 @@
   - 實作專案狀態管理和驗證邏輯
   - _需求: 1.5, 8.2_
 
-- [ ] 6. 實作檔案上傳和解析服務
+- [x] 6. 實作檔案上傳和解析服務
   - 建立 POST /api/v1/projects/[id]/upload 端點
   - 實作多格式檔案解析 (.txt, .md, .docx, .pdf)
   - 建立文字清洗和正規化功能
@@ -60,22 +60,22 @@
 
 ## Gemini API 整合核心
 
-- [ ] 7. 建立 Gemini API 客戶端基礎架構
+- [x] 7. 建立 Gemini API 客戶端基礎架構
   - 安裝最新 google-genai SDK（GA 版本，取代舊版 google-generativeai）
-  - 建立模型常數管理（gemini-2.5-flash, gemini-2.5-flash-preview-tts, imagen-4.0-generate-preview-06-06）
+  - 建立模型常數管理（gemini-2.5-flash, gemini-2.5-flash-preview-tts, imagen-4.0-generate-preview-06-06）(from ai studio api_key:AIzaSyCV6ZEkfvo2PSLXbez1QVnwRnNg22MMXrQ)
   - 實作 BYO API 金鑰支援和安全儲存
   - 建立 Free Tier 限額護欄（文字 10 RPM, TTS 3 RPM, 圖像 10 RPM）
   - 實作區域可用性檢查和回退策略
   - _需求: 4.1, 11.5, 10.4, 10.5_
 
-- [ ] 7.1 升級現有 Gemini 代碼到最新 SDK
+- [x] 7.1 升級現有 Gemini 代碼到最新 SDK
   - 檢查並升級現有 gemini_text.py/gemini_tts.py/gemini_image.py 到 google-genai
   - 移除舊版 google-generativeai 依賴（2025-11-30 後停止更新）
   - 更新所有 API 調用語法到新版 SDK 格式
   - 建立 REST 備援方案以便無 SDK 環境時測試
   - _需求: 技術債務清理和未來兼容性_
 
-- [ ] 7.2 實作 Gemini 錯誤處理和重試機制
+- [x] 7.2 實作 Gemini 錯誤處理和重試機制
   - 建立錯誤分類系統（429 限流、配額超限、內容政策、超時等）
   - 實作指數退避重試策略（觸發 429 時自動退避）
   - 建立降級策略（生圖失敗用佔位圖、TTS 失敗保留文字）
@@ -84,7 +84,7 @@
 
 ## 場景處理和文字分析
 
-- [ ] 8. 實作場景切分服務
+- [x] 8. 實作場景切分服務
   - 建立基於規則的場景切分算法 (100-280 字)
   - 整合 Gemini Text API 進行語義切分
   - 實作場景合併、拆分和重排功能
@@ -92,7 +92,7 @@
   - 實作中文文字正規化（全形/半形、標點符號）
   - _需求: 2.1, 2.2, 2.3, 2.4, 2.5, 16.5_
 
-- [ ] 9. 實作提示詞生成服務
+- [x] 9. 實作提示詞生成服務
   - 建立場景到視覺提示詞的轉換邏輯
   - 實作英文化和視覺要素提取（主體/環境/鏡頭/光影/情緒）
   - 建立內容安全過濾和替代方案生成

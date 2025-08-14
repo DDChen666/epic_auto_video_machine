@@ -8,20 +8,47 @@ import {
   HTTP_STATUS,
   ERROR_CODES,
 } from '@/lib/api-utils'
-import { withMetrics } from '@/lib/monitoring'
-import { withRateLimit, apiRateLimit } from '@/lib/rate-limit'
+import { withAuth, AuthContext } from '@/lib/auth-middleware'
+import { ProjectService } from '@/lib/project-service'
+import { DEFAULT_PROJECT_CONFIG } from '@/types'
+import type { ProjectConfig, ProjectStatus } from '@/types'
 
 // Validation schemas
+const ProjectConfigSchema = z.object({
+  aspect_ratio: z.enum(['9:16', '16:9', '1:1']).default('9:16'),
+  template: z.object({
+    name: z.enum(['classic', 'dark', 'vivid']).default('classic'),
+    transitions: z.enum(['none', 'fade', 'zoom']).default('fade'),
+    transition_duration: z.number().min(100).max(2000).default(500),
+    background_music: z.boolean().default(true),
+    bgm_volume: z.number().min(-30).max(0).default(-18),
+  }).default(DEFAULT_PROJECT_CONFIG.template),
+  voice: z.object({
+    type: z.enum(['male', 'female', 'natural']).default('natural'),
+    speed: z.number().min(0.5).max(2.0).default(1.0),
+    language: z.enum(['zh-TW', 'en']).default('zh-TW'),
+    accent: z.enum(['taiwan', 'mainland', 'hongkong']).default('taiwan'),
+  }).default(DEFAULT_PROJECT_CONFIG.voice),
+  generation: z.object({
+    images_per_scene: z.enum([1, 2, 3]).default(1),
+    image_quality: z.enum(['standard', 'high']).default('standard'),
+    retry_attempts: z.number().min(1).max(5).default(3),
+    timeout_seconds: z.number().min(60).max(600).default(300),
+    smart_crop: z.boolean().default(true),
+  }).default(DEFAULT_PROJECT_CONFIG.generation),
+  safety: z.object({
+    content_policy: z.enum(['strict', 'standard']).default('standard'),
+    blocked_words: z.array(z.string()).default([]),
+    error_strategy: z.enum(['skip', 'mask', 'fail']).default('skip'),
+    adult_content: z.enum(['block', 'warn', 'allow']).default('block'),
+    violence_filter: z.boolean().default(true),
+  }).default(DEFAULT_PROJECT_CONFIG.safety),
+})
+
 const CreateProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title too long'),
-  description: z.string().optional(),
-  config: z
-    .object({
-      aspect_ratio: z.enum(['9:16', '16:9', '1:1']).default('9:16'),
-      template: z.enum(['classic', 'dark', 'vivid']).default('classic'),
-      voice: z.enum(['male', 'female', 'natural']).default('natural'),
-    })
-    .optional(),
+  description: z.string().max(1000, 'Description too long').optional(),
+  config: ProjectConfigSchema.optional(),
 })
 
 const ListProjectsSchema = z.object({
@@ -36,148 +63,103 @@ const ListProjectsSchema = z.object({
     .transform(val => (val ? parseInt(val, 10) : 20))
     .pipe(z.number().min(1).max(100)),
   status: z
-    .enum(['draft', 'ready', 'processing', 'completed', 'failed'])
+    .enum(['DRAFT', 'READY', 'PROCESSING', 'COMPLETED', 'FAILED'])
     .optional(),
+  search: z.string().optional(),
+  sort: z.enum(['created_at', 'updated_at', 'title']).default('updated_at'),
+  order: z.enum(['asc', 'desc']).default('desc'),
 })
 
 /**
  * GET /api/v1/projects - List projects
  */
-export const GET = withMetrics(
-  withRateLimit(
-    apiRateLimit,
-    withApiHandler(async (request: NextRequest) => {
-      const { searchParams } = new URL(request.url)
+export const GET = withApiHandler(async (request: NextRequest) => {
+  return withAuth(request, async (req, context) => {
+    const { searchParams } = new URL(req.url)
+    
+    // Parse and validate query parameters
+    const queryParams = Object.fromEntries(searchParams.entries())
+    const validation = ListProjectsSchema.safeParse(queryParams)
+    
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
 
-      // Parse query parameters with defaults
-      const page = parseInt(searchParams.get('page') || '1', 10)
-      const limit = Math.min(
-        parseInt(searchParams.get('limit') || '20', 10),
-        100
-      )
-      const status = searchParams.get('status') as
-        | 'draft'
-        | 'ready'
-        | 'processing'
-        | 'completed'
-        | 'failed'
-        | null
+    const { page, limit, status, search, sort, order } = validation.data
 
-      // Validate parameters
-      if (isNaN(page) || page < 1) {
-        return errorResponse(
-          ERROR_CODES.INVALID_INPUT,
-          'Invalid page parameter',
-          HTTP_STATUS.BAD_REQUEST
-        )
-      }
-      if (isNaN(limit) || limit < 1) {
-        return errorResponse(
-          ERROR_CODES.INVALID_INPUT,
-          'Invalid limit parameter',
-          HTTP_STATUS.BAD_REQUEST
-        )
-      }
-      if (
-        status &&
-        !['draft', 'ready', 'processing', 'completed', 'failed'].includes(
-          status
-        )
-      ) {
-        return errorResponse(
-          ERROR_CODES.INVALID_INPUT,
-          'Invalid status parameter',
-          HTTP_STATUS.BAD_REQUEST
-        )
-      }
-
-      // TODO: Replace with actual database query
-      const mockProjects = [
-        {
-          id: 'proj_1',
-          title: 'My First Video',
-          description: 'A test video project',
-          status: 'draft',
-          config: {
-            aspect_ratio: '9:16',
-            template: 'classic',
-            voice: 'natural',
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]
-
-      const filteredProjects = status
-        ? mockProjects.filter(p => p.status === status)
-        : mockProjects
-
-      const total = filteredProjects.length
-      const startIndex = (page - 1) * limit
-      const endIndex = startIndex + limit
-      const projects = filteredProjects.slice(startIndex, endIndex)
-
-      return successResponse({
-        projects,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: endIndex < total,
-          hasPrev: page > 1,
-        },
+    try {
+      const projectService = new ProjectService(context)
+      const result = await projectService.listProjects({
+        page,
+        limit,
+        status,
+        search,
+        sort,
+        order,
       })
-    })
-  )
-)
+
+      return successResponse(result)
+    } catch (error) {
+      console.error('Error listing projects:', error)
+      return errorResponse(
+        ERROR_CODES.DATABASE_ERROR,
+        error instanceof Error ? error.message : 'Failed to list projects',
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      )
+    }
+  })
+})
 
 /**
  * POST /api/v1/projects - Create a new project
  */
-export const POST = withMetrics(
-  withRateLimit(
-    apiRateLimit,
-    withApiHandler(async (request: NextRequest) => {
-      let body
-      try {
-        body = await request.json()
-      } catch (error) {
-        return errorResponse(
-          ERROR_CODES.INVALID_INPUT,
-          'Invalid JSON in request body',
-          HTTP_STATUS.BAD_REQUEST
-        )
+export const POST = withApiHandler(async (request: NextRequest) => {
+  return withAuth(request, async (req, context) => {
+    let body
+    try {
+      body = await req.json()
+    } catch (error) {
+      return errorResponse(
+        ERROR_CODES.INVALID_INPUT,
+        'Invalid JSON in request body',
+        HTTP_STATUS.BAD_REQUEST
+      )
+    }
+
+    // Validate request body
+    const validation = CreateProjectSchema.safeParse(body)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
+    const { title, description, config } = validation.data
+
+    try {
+      const projectService = new ProjectService(context)
+      
+      // Merge with default config
+      const projectConfig: ProjectConfig = {
+        ...DEFAULT_PROJECT_CONFIG,
+        ...config,
       }
 
-      // Validate request body
-      const validation = CreateProjectSchema.safeParse(body)
-      if (!validation.success) {
-        return validationErrorResponse(validation.error)
-      }
-
-      const { title, description, config } = validation.data
-
-      // TODO: Replace with actual database creation
-      const newProject = {
-        id: `proj_${Date.now()}`,
+      const newProject = await projectService.createProject({
         title,
         description,
-        status: 'draft' as const,
-        config: {
-          aspect_ratio: '9:16' as const,
-          template: 'classic' as const,
-          voice: 'natural' as const,
-          ...config,
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
+        config: projectConfig,
+      })
 
       return successResponse(newProject, HTTP_STATUS.CREATED)
-    })
-  )
-)
+    } catch (error) {
+      console.error('Error creating project:', error)
+      return errorResponse(
+        ERROR_CODES.DATABASE_ERROR,
+        error instanceof Error ? error.message : 'Failed to create project',
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      )
+    }
+  })
+})
 
 /**
  * OPTIONS /api/v1/projects - CORS preflight

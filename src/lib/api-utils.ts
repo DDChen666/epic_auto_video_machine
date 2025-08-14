@@ -62,6 +62,9 @@ export const ERROR_CODES = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   DATABASE_ERROR: 'DATABASE_ERROR',
 
+  // Processing errors
+  PROCESSING_ERROR: 'PROCESSING_ERROR',
+
   // External API errors
   EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
   GEMINI_API_ERROR: 'GEMINI_API_ERROR',
@@ -281,3 +284,20 @@ export function healthCheckResponse(
     status === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE
   )
 }
+
+// Request validation helper
+export function validateRequest<T>(schema: any, data: any): { success: true; data: T } | { success: false; errors: any } {
+  try {
+    const validatedData = schema.parse(data)
+    return { success: true, data: validatedData }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, errors: error.issues }
+    }
+    return { success: false, errors: [{ message: 'Validation failed' }] }
+  }
+}
+
+// Convenience aliases for backward compatibility
+export const createSuccessResponse = successResponse
+export const createErrorResponse = errorResponse
