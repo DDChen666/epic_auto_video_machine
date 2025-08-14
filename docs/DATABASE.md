@@ -9,6 +9,7 @@ The application uses **PostgreSQL** as the primary database with **Prisma ORM** 
 ### Database Provider: Neon Postgres
 
 We recommend using [Neon](https://neon.tech) for the PostgreSQL database because:
+
 - ✅ Serverless PostgreSQL with automatic scaling
 - ✅ Built-in connection pooling
 - ✅ Generous free tier for development
@@ -62,11 +63,13 @@ We recommend using [Neon](https://neon.tech) for the PostgreSQL database because
 ### 2. Environment Configuration
 
 1. Copy the environment template:
+
    ```bash
    cp .env.example .env.local
    ```
 
 2. Update the database URLs in `.env.local`:
+
    ```env
    DATABASE_URL="your-neon-connection-string"
    DIRECT_URL="your-neon-connection-string"
@@ -83,6 +86,7 @@ npm run db:init
 ```
 
 This script will:
+
 - Generate the Prisma client
 - Push the schema to your database
 - Seed initial data (demo user, default presets)
@@ -148,7 +152,7 @@ Since Prisma doesn't support native PostgreSQL RLS, we implement application-lev
 ```typescript
 // ✅ Correct: User-scoped query
 const userProjects = await db.project.findMany({
-  where: { userId: currentUser.id }
+  where: { userId: currentUser.id },
 })
 
 // ❌ Incorrect: Global query (security risk)
@@ -241,6 +245,7 @@ npx prisma db pull
 ```
 
 If this fails:
+
 - Check your `DATABASE_URL` format
 - Ensure the database server is running
 - Verify network connectivity and firewall settings
@@ -292,6 +297,7 @@ npm run db:migrate:deploy
 ### Monitoring
 
 Set up monitoring for:
+
 - Database connection health
 - Query performance
 - Storage usage

@@ -24,7 +24,7 @@ async function handleDeleteAccount(request: NextRequest, context: any) {
 
   try {
     await UserService.deleteUserAccount(context.userId)
-    
+
     return NextResponse.json({
       success: true,
       message: 'Account and all associated data have been permanently deleted',
@@ -34,7 +34,8 @@ async function handleDeleteAccount(request: NextRequest, context: any) {
       {
         success: false,
         error: 'DELETE_ACCOUNT_FAILED',
-        message: error instanceof Error ? error.message : 'Failed to delete account',
+        message:
+          error instanceof Error ? error.message : 'Failed to delete account',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )

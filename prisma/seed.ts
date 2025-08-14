@@ -11,46 +11,52 @@ async function main() {
     {
       id: 'preset-classic-clean',
       name: 'Classic Clean',
-      config: JSON.parse(JSON.stringify({
-        ...DEFAULT_PROJECT_CONFIG,
-        template: {
-          name: 'classic',
-          transitions: 'fade',
-          transition_duration: 500,
-          background_music: true,
-          bgm_volume: -18,
-        },
-      })),
+      config: JSON.parse(
+        JSON.stringify({
+          ...DEFAULT_PROJECT_CONFIG,
+          template: {
+            name: 'classic',
+            transitions: 'fade',
+            transition_duration: 500,
+            background_music: true,
+            bgm_volume: -18,
+          },
+        })
+      ),
       isDefault: true,
     },
     {
       id: 'preset-dark-glass',
       name: 'Dark Glass',
-      config: JSON.parse(JSON.stringify({
-        ...DEFAULT_PROJECT_CONFIG,
-        template: {
-          name: 'dark',
-          transitions: 'zoom',
-          transition_duration: 800,
-          background_music: true,
-          bgm_volume: -20,
-        },
-      })),
+      config: JSON.parse(
+        JSON.stringify({
+          ...DEFAULT_PROJECT_CONFIG,
+          template: {
+            name: 'dark',
+            transitions: 'zoom',
+            transition_duration: 800,
+            background_music: true,
+            bgm_volume: -20,
+          },
+        })
+      ),
       isDefault: false,
     },
     {
       id: 'preset-vivid-gradient',
       name: 'Vivid Gradient',
-      config: JSON.parse(JSON.stringify({
-        ...DEFAULT_PROJECT_CONFIG,
-        template: {
-          name: 'vivid',
-          transitions: 'fade',
-          transition_duration: 600,
-          background_music: true,
-          bgm_volume: -16,
-        },
-      })),
+      config: JSON.parse(
+        JSON.stringify({
+          ...DEFAULT_PROJECT_CONFIG,
+          template: {
+            name: 'vivid',
+            transitions: 'fade',
+            transition_duration: 600,
+            background_music: true,
+            bgm_volume: -16,
+          },
+        })
+      ),
       isDefault: false,
     },
   ]
@@ -151,7 +157,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error('❌ Seed failed:', e)
     process.exit(1)
   })

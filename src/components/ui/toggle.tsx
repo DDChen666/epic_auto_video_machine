@@ -77,7 +77,9 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
         className={cn(
           'relative inline-flex items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2',
           sizeClasses[size].track,
-          checked ? variantClasses[variant].trackOn : variantClasses[variant].trackOff,
+          checked
+            ? variantClasses[variant].trackOn
+            : variantClasses[variant].trackOff,
           disabled && 'opacity-50 cursor-not-allowed',
           className
         )}
@@ -89,7 +91,9 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
             variantClasses[variant].thumb
           )}
           animate={{
-            x: checked ? sizeClasses[size].translate.replace('translate-x-', '') : '0',
+            x: checked
+              ? sizeClasses[size].translate.replace('translate-x-', '')
+              : '0',
           }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         />

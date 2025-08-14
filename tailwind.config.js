@@ -57,11 +57,15 @@ module.exports = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         // Brand gradients
         'gradient-primary': 'linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, #1E293B 0%, #0EA5E9 100%)',
-        'gradient-vivid': 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #06B6D4 100%)',
+        'gradient-secondary':
+          'linear-gradient(135deg, #1E293B 0%, #0EA5E9 100%)',
+        'gradient-vivid':
+          'linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #06B6D4 100%)',
         // Glass morphism gradients
-        'gradient-glass': 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-        'gradient-glass-dark': 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%)',
+        'gradient-glass':
+          'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        'gradient-glass-dark':
+          'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%)',
         // Template gradients
         'gradient-classic': 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
         'gradient-dark': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
@@ -74,9 +78,9 @@ module.exports = {
         '5xl': '2.5rem',
         '6xl': '3rem',
         // Design system specific radii
-        'card': '1.5rem', // 24px - main card radius
-        'button': '0.75rem', // 12px - button radius
-        'input': '0.5rem', // 8px - input radius
+        card: '1.5rem', // 24px - main card radius
+        button: '0.75rem', // 12px - button radius
+        input: '0.5rem', // 8px - input radius
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -109,10 +113,14 @@ module.exports = {
         'glass-sm': '0 4px 16px 0 rgba(31, 38, 135, 0.2)',
         'glass-lg': '0 16px 64px 0 rgba(31, 38, 135, 0.5)',
         // Elevation shadows
-        'elevation-1': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        'elevation-2': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'elevation-3': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'elevation-4': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        'elevation-1':
+          '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'elevation-2':
+          '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'elevation-3':
+          '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'elevation-4':
+          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         // Brand specific shadows
         'brand-glow': '0 0 20px rgba(124, 58, 237, 0.3)',
         'brand-glow-lg': '0 0 40px rgba(124, 58, 237, 0.4)',

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { healthCheckResponse, withApiHandler } from '@/lib/api-utils'
 import { metricsCollector } from '@/lib/monitoring'
+import { checkDatabaseHealth } from '@/lib/db-health'
 
 /**
  * GET /api/health - Health check endpoint
@@ -9,19 +10,24 @@ import { metricsCollector } from '@/lib/monitoring'
 export const GET = withApiHandler(async (request: NextRequest) => {
   // Get health status from monitoring system
   const healthStatus = metricsCollector.getHealthStatus()
-  
+
+  // Perform database health check
+  const dbHealth = await checkDatabaseHealth()
+
   // Perform basic health checks
   const checks = {
     api: healthStatus.status === 'healthy',
-    database: true, // TODO: Add actual database health check
-    timestamp: true,
+    database: dbHealth.status === 'healthy',
+    databaseLatency: dbHealth.latency,
+    databaseConnection: dbHealth.connection,
+    timestamp: new Date().toISOString(),
     metrics: healthStatus.details,
+    databaseStats: dbHealth.stats,
+    errors: dbHealth.errors,
   }
 
-  const allHealthy = Object.values(checks).every(check => 
-    typeof check === 'boolean' ? check : true
-  )
-  
+  const allHealthy = checks.api && checks.database && checks.databaseConnection
+
   return healthCheckResponse(
     allHealthy ? 'healthy' : 'unhealthy',
     checks

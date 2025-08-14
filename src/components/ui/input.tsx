@@ -34,7 +34,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const variantClasses = {
       default: 'bg-white/5 border-white/20 focus:border-brand-primary',
       glass: 'glass border-glass-border focus:border-brand-primary',
-      outline: 'bg-transparent border-gray-300 dark:border-gray-600 focus:border-brand-primary',
+      outline:
+        'bg-transparent border-gray-300 dark:border-gray-600 focus:border-brand-primary',
     }
 
     return (
@@ -52,14 +53,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </motion.label>
         )}
-        
+
         <div className="relative">
           {leftIcon && (
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               {leftIcon}
             </div>
           )}
-          
+
           <motion.input
             className={cn(
               'flex h-12 w-full rounded-input px-3 py-2 text-sm transition-all duration-200',
@@ -68,7 +69,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               variantClasses[variant],
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+              error &&
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20',
               className
             )}
             type={type}
@@ -79,14 +81,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             transition={{ duration: 0.2 }}
             {...props}
           />
-          
+
           {rightIcon && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               {rightIcon}
             </div>
           )}
         </div>
-        
+
         {(error || helperText) && (
           <motion.p
             initial={{ opacity: 0, y: -5 }}

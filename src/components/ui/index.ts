@@ -1,6 +1,13 @@
 // Epic Auto Video Machine UI Components
 export { Button } from './button'
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from './card'
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from './card'
 export { Input } from './input'
 export { Textarea } from './textarea'
 export { Badge } from './badge'

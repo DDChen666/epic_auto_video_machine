@@ -80,7 +80,7 @@ const Modal: React.FC<ModalProps> = ({
               sizeClasses[size],
               className
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             {showCloseButton && (
               <button
@@ -147,7 +147,12 @@ const ModalFooter: React.FC<{
   children: React.ReactNode
   className?: string
 }> = ({ children, className }) => (
-  <div className={cn('flex justify-end space-x-3 pt-4 border-t border-white/10', className)}>
+  <div
+    className={cn(
+      'flex justify-end space-x-3 pt-4 border-t border-white/10',
+      className
+    )}
+  >
     {children}
   </div>
 )

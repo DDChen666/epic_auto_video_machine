@@ -18,12 +18,12 @@ function getEncryptionKey(): Buffer {
   if (!key) {
     throw new Error('ENCRYPTION_KEY environment variable is required')
   }
-  
+
   // If key is hex-encoded, decode it
   if (key.length === 64) {
     return Buffer.from(key, 'hex')
   }
-  
+
   // Otherwise, hash the key to get consistent 32-byte key
   return crypto.createHash('sha256').update(key).digest()
 }
@@ -36,20 +36,23 @@ export function generateEncryptionKey(): string {
 }
 
 /**
- * Encrypt sensitive data using AES-256-CBC (simpler approach for testing)
+ * Encrypt sensitive data using AES-256-GCM (authenticated encryption)
  */
 export function encrypt(plaintext: string): string {
   try {
     const key = getEncryptionKey()
-    const iv = crypto.randomBytes(16) // 16 bytes for AES-256-CBC
-    const cipher = crypto.createCipher('aes-256-cbc', key)
-    
+    const iv = crypto.randomBytes(IV_LENGTH)
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+
     let encrypted = cipher.update(plaintext, 'utf8', 'hex')
     encrypted += cipher.final('hex')
-    
-    // Combine iv + encrypted data
-    const combined = iv.toString('hex') + ':' + encrypted
-    
+
+    const tag = cipher.getAuthTag()
+
+    // Combine iv + tag + encrypted data
+    const combined =
+      iv.toString('hex') + ':' + tag.toString('hex') + ':' + encrypted
+
     return Buffer.from(combined).toString('base64')
   } catch (error) {
     console.error('Encryption error:', error)
@@ -58,22 +61,28 @@ export function encrypt(plaintext: string): string {
 }
 
 /**
- * Decrypt sensitive data
+ * Decrypt sensitive data using AES-256-GCM
  */
 export function decrypt(encryptedData: string): string {
   try {
     const key = getEncryptionKey()
     const combined = Buffer.from(encryptedData, 'base64').toString()
-    
-    // Extract iv and encrypted data
-    const [ivHex, encrypted] = combined.split(':')
+
+    // Extract iv, tag, and encrypted data
+    const [ivHex, tagHex, encrypted] = combined.split(':')
+    if (!ivHex || !tagHex || !encrypted) {
+      throw new Error('Invalid encrypted data format')
+    }
+
     const iv = Buffer.from(ivHex, 'hex')
-    
-    const decipher = crypto.createDecipher('aes-256-cbc', key)
-    
+    const tag = Buffer.from(tagHex, 'hex')
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+    decipher.setAuthTag(tag)
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
-    
+
     return decrypted
   } catch (error) {
     console.error('Decryption error:', error)
@@ -150,15 +159,18 @@ export function generateApiKey(prefix: string = 'eavm'): string {
 /**
  * Mask sensitive data for logging
  */
-export function maskSensitiveData(data: string, visibleChars: number = 4): string {
+export function maskSensitiveData(
+  data: string,
+  visibleChars: number = 4
+): string {
   if (data.length <= visibleChars * 2) {
     return '*'.repeat(data.length)
   }
-  
+
   const start = data.substring(0, visibleChars)
   const end = data.substring(data.length - visibleChars)
   const middle = '*'.repeat(data.length - visibleChars * 2)
-  
+
   return `${start}${middle}${end}`
 }
 
@@ -169,12 +181,12 @@ export function secureCompare(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false
   }
-  
+
   let result = 0
   for (let i = 0; i < a.length; i++) {
     result |= a.charCodeAt(i) ^ b.charCodeAt(i)
   }
-  
+
   return result === 0
 }
 
@@ -188,6 +200,9 @@ export function generateCSRFToken(): string {
 /**
  * Validate CSRF token
  */
-export function validateCSRFToken(token: string, expectedToken: string): boolean {
+export function validateCSRFToken(
+  token: string,
+  expectedToken: string
+): boolean {
   return secureCompare(token, expectedToken)
 }

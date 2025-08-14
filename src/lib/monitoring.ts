@@ -30,7 +30,7 @@ class MetricsCollector {
 
   addMetric(data: MetricData) {
     this.metrics.push(data)
-    
+
     // Keep only the last N metrics to prevent memory issues
     if (this.metrics.length > this.maxMetrics) {
       this.metrics = this.metrics.slice(-this.maxMetrics)
@@ -40,26 +40,41 @@ class MetricsCollector {
   getMetrics(): ApiMetrics {
     const now = Date.now()
     const totalRequests = this.metrics.length
-    const successfulRequests = this.metrics.filter(m => m.statusCode >= 200 && m.statusCode < 400).length
+    const successfulRequests = this.metrics.filter(
+      m => m.statusCode >= 200 && m.statusCode < 400
+    ).length
     const failedRequests = totalRequests - successfulRequests
-    
-    const totalResponseTime = this.metrics.reduce((sum, m) => sum + m.responseTime, 0)
-    const averageResponseTime = totalRequests > 0 ? totalResponseTime / totalRequests : 0
 
-    const requestsByMethod = this.metrics.reduce((acc, m) => {
-      acc[m.method] = (acc[m.method] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const totalResponseTime = this.metrics.reduce(
+      (sum, m) => sum + m.responseTime,
+      0
+    )
+    const averageResponseTime =
+      totalRequests > 0 ? totalResponseTime / totalRequests : 0
 
-    const requestsByStatus = this.metrics.reduce((acc, m) => {
-      acc[m.statusCode] = (acc[m.statusCode] || 0) + 1
-      return acc
-    }, {} as Record<number, number>)
+    const requestsByMethod = this.metrics.reduce(
+      (acc, m) => {
+        acc[m.method] = (acc[m.method] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
 
-    const requestsByPath = this.metrics.reduce((acc, m) => {
-      acc[m.path] = (acc[m.path] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const requestsByStatus = this.metrics.reduce(
+      (acc, m) => {
+        acc[m.statusCode] = (acc[m.statusCode] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>
+    )
+
+    const requestsByPath = this.metrics.reduce(
+      (acc, m) => {
+        acc[m.path] = (acc[m.path] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
 
     return {
       totalRequests,
@@ -76,23 +91,31 @@ class MetricsCollector {
 
   getHealthStatus(): { status: 'healthy' | 'unhealthy'; details: any } {
     const metrics = this.getMetrics()
-    const recentMetrics = this.metrics.filter(m => m.timestamp > Date.now() - 5 * 60 * 1000) // Last 5 minutes
-    
-    const recentFailureRate = recentMetrics.length > 0 
-      ? recentMetrics.filter(m => m.statusCode >= 400).length / recentMetrics.length 
-      : 0
+    const recentMetrics = this.metrics.filter(
+      m => m.timestamp > Date.now() - 5 * 60 * 1000
+    ) // Last 5 minutes
 
-    const recentAverageResponseTime = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.responseTime, 0) / recentMetrics.length
-      : 0
+    const recentFailureRate =
+      recentMetrics.length > 0
+        ? recentMetrics.filter(m => m.statusCode >= 400).length /
+          recentMetrics.length
+        : 0
 
-    const isHealthy = recentFailureRate < 0.1 && recentAverageResponseTime < 5000 // < 10% failure rate and < 5s response time
+    const recentAverageResponseTime =
+      recentMetrics.length > 0
+        ? recentMetrics.reduce((sum, m) => sum + m.responseTime, 0) /
+          recentMetrics.length
+        : 0
+
+    const isHealthy =
+      recentFailureRate < 0.1 && recentAverageResponseTime < 5000 // < 10% failure rate and < 5s response time
 
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
       details: {
         recentFailureRate: Math.round(recentFailureRate * 10000) / 100, // Percentage with 2 decimal places
-        recentAverageResponseTime: Math.round(recentAverageResponseTime * 100) / 100,
+        recentAverageResponseTime:
+          Math.round(recentAverageResponseTime * 100) / 100,
         recentRequestCount: recentMetrics.length,
         uptime: metrics.uptime,
       },
@@ -109,11 +132,11 @@ export function withMetrics<T extends any[]>(
   return async (...args: T): Promise<NextResponse> => {
     const startTime = Date.now()
     const request = args[0] as NextRequest
-    
+
     try {
       const response = await handler(...args)
       const endTime = Date.now()
-      
+
       // Collect metrics
       metricsCollector.addMetric({
         timestamp: startTime,
@@ -122,13 +145,16 @@ export function withMetrics<T extends any[]>(
         statusCode: response.status,
         responseTime: endTime - startTime,
         userAgent: request.headers.get('user-agent') || undefined,
-        ip: request.headers.get('x-forwarded-for')?.split(',')[0] || request.ip || undefined,
+        ip:
+          request.headers.get('x-forwarded-for')?.split(',')[0] ||
+          request.ip ||
+          undefined,
       })
 
       return response
     } catch (error) {
       const endTime = Date.now()
-      
+
       // Collect error metrics
       metricsCollector.addMetric({
         timestamp: startTime,
@@ -137,7 +163,10 @@ export function withMetrics<T extends any[]>(
         statusCode: 500,
         responseTime: endTime - startTime,
         userAgent: request.headers.get('user-agent') || undefined,
-        ip: request.headers.get('x-forwarded-for')?.split(',')[0] || request.ip || undefined,
+        ip:
+          request.headers.get('x-forwarded-for')?.split(',')[0] ||
+          request.ip ||
+          undefined,
       })
 
       throw error
@@ -156,7 +185,10 @@ export function logRequest(
   const url = request.url
   const status = response.status
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.ip || 'unknown'
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0] ||
+    request.ip ||
+    'unknown'
 
   console.log(
     `[${timestamp}] ${method} ${url} ${status} ${responseTime}ms - ${ip} - ${userAgent}`

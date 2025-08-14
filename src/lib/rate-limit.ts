@@ -16,14 +16,17 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
 // Cleanup expired entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now) {
-      rateLimitStore.delete(key)
+setInterval(
+  () => {
+    const now = Date.now()
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime < now) {
+        rateLimitStore.delete(key)
+      }
     }
-  }
-}, 5 * 60 * 1000)
+  },
+  5 * 60 * 1000
+)
 
 export function createRateLimit(config: RateLimitConfig) {
   const { windowMs, maxRequests, keyGenerator = defaultKeyGenerator } = config

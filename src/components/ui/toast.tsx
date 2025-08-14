@@ -92,7 +92,7 @@ const ToastComponent: React.FC<ToastProps> = ({
             >
               {typeStyles[type].icon}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               {title && (
                 <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -102,7 +102,7 @@ const ToastComponent: React.FC<ToastProps> = ({
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {message}
               </p>
-              
+
               {action && (
                 <button
                   onClick={action.onClick}
@@ -112,13 +112,23 @@ const ToastComponent: React.FC<ToastProps> = ({
                 </button>
               )}
             </div>
-            
+
             <button
               onClick={handleClose}
               className="flex-shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -132,7 +142,13 @@ const ToastComponent: React.FC<ToastProps> = ({
 interface ToastContainerProps {
   toasts: Toast[]
   onClose: (id: string) => void
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center'
+  position?:
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-center'
+    | 'bottom-center'
 }
 
 const ToastContainer: React.FC<ToastContainerProps> = ({
@@ -150,9 +166,14 @@ const ToastContainer: React.FC<ToastContainerProps> = ({
   }
 
   return (
-    <div className={cn('fixed z-50 flex flex-col space-y-3', positionClasses[position])}>
+    <div
+      className={cn(
+        'fixed z-50 flex flex-col space-y-3',
+        positionClasses[position]
+      )}
+    >
       <AnimatePresence>
-        {toasts.map((toast) => (
+        {toasts.map(toast => (
           <ToastComponent key={toast.id} {...toast} onClose={onClose} />
         ))}
       </AnimatePresence>
@@ -166,11 +187,11 @@ export const useToast = () => {
 
   const addToast = React.useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9)
-    setToasts((prev) => [...prev, { ...toast, id }])
+    setToasts(prev => [...prev, { ...toast, id }])
   }, [])
 
   const removeToast = React.useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+    setToasts(prev => prev.filter(toast => toast.id !== id))
   }, [])
 
   const clearToasts = React.useCallback(() => {

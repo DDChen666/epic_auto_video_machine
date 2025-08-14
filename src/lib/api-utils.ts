@@ -40,28 +40,28 @@ export const ERROR_CODES = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
-  
+
   // Authentication errors
   UNAUTHORIZED: 'UNAUTHORIZED',
   INVALID_TOKEN: 'INVALID_TOKEN',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-  
+
   // Authorization errors
   FORBIDDEN: 'FORBIDDEN',
   INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-  
+
   // Resource errors
   NOT_FOUND: 'NOT_FOUND',
   ALREADY_EXISTS: 'ALREADY_EXISTS',
-  
+
   // Rate limiting
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // Server errors
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   DATABASE_ERROR: 'DATABASE_ERROR',
-  
+
   // External API errors
   EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
   GEMINI_API_ERROR: 'GEMINI_API_ERROR',
@@ -123,11 +123,12 @@ export function validationErrorResponse(
     )
   }
 
-  const formattedErrors = error.errors?.map((err) => ({
-    field: err.path.join('.'),
-    message: err.message,
-    code: err.code,
-  })) || []
+  const formattedErrors =
+    error.issues?.map((err: any) => ({
+      field: err.path.join('.'),
+      message: err.message,
+      code: err.code,
+    })) || []
 
   return errorResponse(
     ERROR_CODES.VALIDATION_ERROR,
@@ -163,11 +164,7 @@ export function unauthorizedResponse(
 export function forbiddenResponse(
   message: string = 'Insufficient permissions'
 ): NextResponse<ApiResponse> {
-  return errorResponse(
-    ERROR_CODES.FORBIDDEN,
-    message,
-    HTTP_STATUS.FORBIDDEN
-  )
+  return errorResponse(ERROR_CODES.FORBIDDEN, message, HTTP_STATUS.FORBIDDEN)
 }
 
 // Rate limit error helper
@@ -256,8 +253,14 @@ export function withApiHandler<T extends any[]>(
 // CORS headers helper
 export function setCorsHeaders(response: NextResponse): NextResponse {
   response.headers.set('Access-Control-Allow-Origin', '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, DELETE, OPTIONS'
+  )
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization'
+  )
   return response
 }
 
@@ -273,5 +276,8 @@ export function healthCheckResponse(
     checks: checks || {},
   }
 
-  return successResponse(data, status === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE)
+  return successResponse(
+    data,
+    status === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE
+  )
 }

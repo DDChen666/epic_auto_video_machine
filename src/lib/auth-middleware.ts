@@ -158,7 +158,7 @@ export async function withRateLimit(
   // In production, you'd use Redis or a proper rate limiting service
   // This is a simplified in-memory implementation for development
   const key = `rate_limit:${context.userId}:${request.nextUrl.pathname}`
-  
+
   // For now, just proceed - implement proper rate limiting with Redis in production
   return await handler(request, context)
 }
@@ -167,9 +167,16 @@ export async function withRateLimit(
  * Multi-tenant data isolation middleware
  */
 export function createTenantScopedHandler<T>(
-  handler: (req: NextRequest, context: AuthContext, db: ReturnType<typeof DatabaseService.getUserScopedClient>) => Promise<NextResponse>
+  handler: (
+    req: NextRequest,
+    context: AuthContext,
+    db: ReturnType<typeof DatabaseService.getUserScopedClient>
+  ) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest, context: AuthContext): Promise<NextResponse> => {
+  return async (
+    request: NextRequest,
+    context: AuthContext
+  ): Promise<NextResponse> => {
     const scopedDb = DatabaseService.getUserScopedClient(context.userId)
     return await handler(request, context, scopedDb)
   }
@@ -182,7 +189,11 @@ export async function withValidation<T>(
   schema: (data: any) => { success: boolean; data?: T; error?: any },
   request: NextRequest,
   context: AuthContext,
-  handler: (req: NextRequest, context: AuthContext, validatedData: T) => Promise<NextResponse>
+  handler: (
+    req: NextRequest,
+    context: AuthContext,
+    validatedData: T
+  ) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
     let data: any
@@ -227,12 +238,15 @@ export async function withValidation<T>(
 export function withErrorHandling(
   handler: (req: NextRequest, context: AuthContext) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest, context: AuthContext): Promise<NextResponse> => {
+  return async (
+    request: NextRequest,
+    context: AuthContext
+  ): Promise<NextResponse> => {
     try {
       return await handler(request, context)
     } catch (error) {
       console.error('API handler error:', error)
-      
+
       // Handle specific error types
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
@@ -245,7 +259,7 @@ export function withErrorHandling(
             { status: HTTP_STATUS.GATEWAY_TIMEOUT }
           )
         }
-        
+
         if (error.message.includes('connection')) {
           return NextResponse.json(
             {
@@ -285,14 +299,19 @@ export function composeMiddleware(
   return (
     request: NextRequest,
     context: AuthContext,
-    finalHandler: (req: NextRequest, context: AuthContext) => Promise<NextResponse>
+    finalHandler: (
+      req: NextRequest,
+      context: AuthContext
+    ) => Promise<NextResponse>
   ): Promise<NextResponse> => {
     const executeMiddleware = (index: number): Promise<NextResponse> => {
       if (index >= middlewares.length) {
         return finalHandler(request, context)
       }
 
-      return middlewares[index](request, context, (req, ctx) => executeMiddleware(index + 1))
+      return middlewares[index](request, context, (req, ctx) =>
+        executeMiddleware(index + 1)
+      )
     }
 
     return executeMiddleware(0)

@@ -5,7 +5,11 @@
  * This script verifies that the database setup is working correctly
  */
 
-import { checkDatabaseHealth, performDatabaseBenchmark, validateDatabaseSchema } from '../src/lib/db-health'
+import {
+  checkDatabaseHealth,
+  performDatabaseBenchmark,
+  validateDatabaseSchema,
+} from '../src/lib/db-health'
 import { DatabaseService } from '../src/lib/db'
 
 async function main() {
@@ -15,7 +19,7 @@ async function main() {
     // 1. Health Check
     console.log('1️⃣  Running health check...')
     const health = await checkDatabaseHealth()
-    
+
     if (health.status === 'healthy') {
       console.log('✅ Database is healthy')
       console.log(`   Connection: ${health.connection ? '✅' : '❌'}`)
@@ -34,7 +38,7 @@ async function main() {
     // 2. Schema Validation
     console.log('\n2️⃣  Validating database schema...')
     const schemaValidation = await validateDatabaseSchema()
-    
+
     if (schemaValidation.valid) {
       console.log('✅ Database schema is valid')
     } else {
@@ -45,7 +49,7 @@ async function main() {
     // 3. Performance Benchmark
     console.log('\n3️⃣  Running performance benchmark...')
     const benchmark = await performDatabaseBenchmark()
-    
+
     console.log(`   Total benchmark time: ${benchmark.totalDuration}ms`)
     benchmark.queries.forEach(query => {
       const status = query.success ? '✅' : '❌'
@@ -58,7 +62,11 @@ async function main() {
     // 4. Multi-tenant Security Test
     console.log('\n4️⃣  Testing multi-tenant security...')
     // This would require actual test data, so we'll just verify the function exists
-    const testOwnership = await DatabaseService.verifyUserOwnership('test-user', 'project', 'test-project')
+    const testOwnership = await DatabaseService.verifyUserOwnership(
+      'test-user',
+      'project',
+      'test-project'
+    )
     console.log('✅ Multi-tenant security functions are available')
 
     console.log('\n🎉 Database verification completed successfully!')
@@ -72,10 +80,11 @@ async function main() {
       console.log('\n✅ Your database is ready for development!')
       console.log('   You can now start the application with: npm run dev')
     } else {
-      console.log('\n⚠️  Some issues were found. Please review the output above.')
+      console.log(
+        '\n⚠️  Some issues were found. Please review the output above.'
+      )
       process.exit(1)
     }
-
   } catch (error) {
     console.error('\n❌ Database verification failed:', error)
     console.log('\n🔧 Troubleshooting:')

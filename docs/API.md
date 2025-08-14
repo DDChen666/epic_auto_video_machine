@@ -19,6 +19,7 @@ Currently, the API operates without authentication for development purposes. Aut
 All API responses follow a consistent format:
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -33,6 +34,7 @@ All API responses follow a consistent format:
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -59,6 +61,7 @@ All API responses follow a consistent format:
 Returns the health status of the API and its dependencies.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -88,6 +91,7 @@ Returns the health status of the API and its dependencies.
 Returns API usage metrics and performance statistics.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -136,11 +140,13 @@ Returns API usage metrics and performance statistics.
 List all projects with pagination support.
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
 - `status` (optional): Filter by status (`draft`, `ready`, `processing`, `completed`, `failed`)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -177,6 +183,7 @@ List all projects with pagination support.
 Create a new project.
 
 **Request Body:**
+
 ```json
 {
   "title": "My Video Project",
@@ -190,6 +197,7 @@ Create a new project.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -214,6 +222,7 @@ Create a new project.
 Get project details by ID.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -239,6 +248,7 @@ Get project details by ID.
 Update project details.
 
 **Request Body:**
+
 ```json
 {
   "title": "Updated Title",
@@ -256,6 +266,7 @@ Update project details.
 Delete a project.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -267,21 +278,21 @@ Delete a project.
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `VALIDATION_ERROR` | Request validation failed |
-| `INVALID_INPUT` | Invalid input parameters |
-| `MISSING_REQUIRED_FIELD` | Required field is missing |
-| `UNAUTHORIZED` | Authentication required |
-| `FORBIDDEN` | Insufficient permissions |
-| `NOT_FOUND` | Resource not found |
-| `ALREADY_EXISTS` | Resource already exists |
-| `RATE_LIMIT_EXCEEDED` | Rate limit exceeded |
-| `INTERNAL_ERROR` | Internal server error |
-| `SERVICE_UNAVAILABLE` | Service temporarily unavailable |
-| `DATABASE_ERROR` | Database operation failed |
-| `EXTERNAL_API_ERROR` | External API error |
-| `GEMINI_API_ERROR` | Gemini API specific error |
+| Code                     | Description                     |
+| ------------------------ | ------------------------------- |
+| `VALIDATION_ERROR`       | Request validation failed       |
+| `INVALID_INPUT`          | Invalid input parameters        |
+| `MISSING_REQUIRED_FIELD` | Required field is missing       |
+| `UNAUTHORIZED`           | Authentication required         |
+| `FORBIDDEN`              | Insufficient permissions        |
+| `NOT_FOUND`              | Resource not found              |
+| `ALREADY_EXISTS`         | Resource already exists         |
+| `RATE_LIMIT_EXCEEDED`    | Rate limit exceeded             |
+| `INTERNAL_ERROR`         | Internal server error           |
+| `SERVICE_UNAVAILABLE`    | Service temporarily unavailable |
+| `DATABASE_ERROR`         | Database operation failed       |
+| `EXTERNAL_API_ERROR`     | External API error              |
+| `GEMINI_API_ERROR`       | Gemini API specific error       |
 
 ## Rate Limiting
 
@@ -306,6 +317,7 @@ The API includes built-in monitoring and metrics collection:
 ## CORS
 
 All endpoints support CORS with the following configuration:
+
 - `Access-Control-Allow-Origin: *`
 - `Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`
 - `Access-Control-Allow-Headers: Content-Type, Authorization`

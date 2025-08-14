@@ -33,12 +33,18 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
           ref={ref}
           {...props}
         >
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2].map(i => (
             <motion.div
               key={i}
               className={cn(
                 'rounded-full bg-brand-primary',
-                size === 'sm' ? 'w-2 h-2' : size === 'md' ? 'w-3 h-3' : size === 'lg' ? 'w-4 h-4' : 'w-5 h-5'
+                size === 'sm'
+                  ? 'w-2 h-2'
+                  : size === 'md'
+                    ? 'w-3 h-3'
+                    : size === 'lg'
+                      ? 'w-4 h-4'
+                      : 'w-5 h-5'
               )}
               animate={{
                 scale: [1, 1.2, 1],
@@ -52,7 +58,12 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
             />
           ))}
           {text && (
-            <span className={cn('ml-3 text-gray-600 dark:text-gray-400', textSizeClasses[size])}>
+            <span
+              className={cn(
+                'ml-3 text-gray-600 dark:text-gray-400',
+                textSizeClasses[size]
+              )}
+            >
               {text}
             </span>
           )}
@@ -82,7 +93,12 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
           }}
         />
         {text && (
-          <span className={cn('text-gray-600 dark:text-gray-400', textSizeClasses[size])}>
+          <span
+            className={cn(
+              'text-gray-600 dark:text-gray-400',
+              textSizeClasses[size]
+            )}
+          >
             {text}
           </span>
         )}

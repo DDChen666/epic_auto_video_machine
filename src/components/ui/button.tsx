@@ -23,16 +23,16 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { 
-      className, 
-      variant = 'default', 
-      size = 'default', 
+    {
+      className,
+      variant = 'default',
+      size = 'default',
       loading = false,
       leftIcon,
       rightIcon,
-      children, 
+      children,
       disabled,
-      ...props 
+      ...props
     },
     ref
   ) => {
@@ -82,13 +82,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
         )}
-        {!loading && leftIcon && (
-          <span className="mr-2">{leftIcon}</span>
-        )}
+        {!loading && leftIcon && <span className="mr-2">{leftIcon}</span>}
         {children}
-        {!loading && rightIcon && (
-          <span className="ml-2">{rightIcon}</span>
-        )}
+        {!loading && rightIcon && <span className="ml-2">{rightIcon}</span>}
       </motion.button>
     )
   }

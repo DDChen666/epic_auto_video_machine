@@ -42,12 +42,13 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     const [focusedIndex, setFocusedIndex] = React.useState(-1)
     const selectRef = React.useRef<HTMLDivElement>(null)
 
-    const selectedOption = options.find((option) => option.value === value)
+    const selectedOption = options.find(option => option.value === value)
 
     const variantClasses = {
       default: 'bg-white/5 border-white/20 focus-within:border-brand-primary',
       glass: 'glass border-glass-border focus-within:border-brand-primary',
-      outline: 'bg-transparent border-gray-300 dark:border-gray-600 focus-within:border-brand-primary',
+      outline:
+        'bg-transparent border-gray-300 dark:border-gray-600 focus-within:border-brand-primary',
     }
 
     // Handle keyboard navigation
@@ -58,15 +59,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault()
-            setFocusedIndex((prev) => 
-              prev < options.length - 1 ? prev + 1 : 0
-            )
+            setFocusedIndex(prev => (prev < options.length - 1 ? prev + 1 : 0))
             break
           case 'ArrowUp':
             e.preventDefault()
-            setFocusedIndex((prev) => 
-              prev > 0 ? prev - 1 : options.length - 1
-            )
+            setFocusedIndex(prev => (prev > 0 ? prev - 1 : options.length - 1))
             break
           case 'Enter':
             e.preventDefault()
@@ -90,14 +87,18 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     // Handle click outside
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
-        if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        if (
+          selectRef.current &&
+          !selectRef.current.contains(event.target as Node)
+        ) {
           setIsOpen(false)
         }
       }
 
       if (isOpen) {
         document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
+        return () =>
+          document.removeEventListener('mousedown', handleClickOutside)
       }
     }, [isOpen])
 
@@ -108,7 +109,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             {label}
           </label>
         )}
-        
+
         <div className="relative" ref={selectRef}>
           <button
             type="button"
@@ -119,7 +120,8 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
               'focus:outline-none focus:ring-2 focus:ring-brand-primary/20',
               variantClasses[variant],
               disabled && 'opacity-50 cursor-not-allowed',
-              error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+              error &&
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20',
               className
             )}
           >
@@ -128,14 +130,18 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 {selectedOption?.icon && (
                   <span className="text-gray-400">{selectedOption.icon}</span>
                 )}
-                <span className={cn(
-                  'block truncate text-sm',
-                  selectedOption ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400'
-                )}>
+                <span
+                  className={cn(
+                    'block truncate text-sm',
+                    selectedOption
+                      ? 'text-gray-900 dark:text-gray-100'
+                      : 'text-gray-400'
+                  )}
+                >
                   {selectedOption?.label || placeholder}
                 </span>
               </div>
-              
+
               <motion.svg
                 className="w-5 h-5 text-gray-400"
                 fill="none"
@@ -144,7 +150,12 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </motion.svg>
             </div>
           </button>
@@ -174,7 +185,8 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                       'w-full px-3 py-2 text-left text-sm transition-colors duration-150 flex items-center space-x-2',
                       'hover:bg-white/10 focus:bg-white/10 focus:outline-none',
                       focusedIndex === index && 'bg-white/10',
-                      option.value === value && 'bg-brand-primary/20 text-brand-primary',
+                      option.value === value &&
+                        'bg-brand-primary/20 text-brand-primary',
                       option.disabled && 'opacity-50 cursor-not-allowed'
                     )}
                   >
@@ -183,8 +195,16 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                     )}
                     <span className="block truncate">{option.label}</span>
                     {option.value === value && (
-                      <svg className="w-4 h-4 ml-auto" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 ml-auto"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </button>
@@ -193,7 +213,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             )}
           </AnimatePresence>
         </div>
-        
+
         {error && (
           <motion.p
             initial={{ opacity: 0, y: -5 }}

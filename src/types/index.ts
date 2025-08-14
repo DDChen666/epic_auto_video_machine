@@ -274,7 +274,7 @@ export interface AuthContext {
 }
 
 // Permission Types
-export type Permission = 
+export type Permission =
   | 'project:create'
   | 'project:read:own'
   | 'project:read:all'

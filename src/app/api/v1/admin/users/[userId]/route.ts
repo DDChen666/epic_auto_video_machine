@@ -15,10 +15,7 @@ interface RouteContext {
 /**
  * GET /api/v1/admin/users/[userId] - Get user details (admin only)
  */
-export async function GET(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function GET(request: NextRequest, context: RouteContext) {
   return withAuth(async (req: NextRequest) => {
     return withAuthorization(
       UserRole.ADMIN,
@@ -91,10 +88,7 @@ export async function GET(
 /**
  * PUT /api/v1/admin/users/[userId] - Update user role (admin only)
  */
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   return withAuth(async (req: NextRequest) => {
     return withAuthorization(
       UserRole.ADMIN,
@@ -141,7 +135,9 @@ export async function PUT(
               success: false,
               error: 'UPDATE_USER_FAILED',
               message:
-                error instanceof Error ? error.message : 'Failed to update user',
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to update user',
             },
             { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
           )
@@ -154,10 +150,7 @@ export async function PUT(
 /**
  * DELETE /api/v1/admin/users/[userId] - Delete user account (admin only)
  */
-export async function DELETE(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   return withAuth(async (req: NextRequest) => {
     return withAuthorization(
       UserRole.ADMIN,
@@ -202,7 +195,9 @@ export async function DELETE(
               success: false,
               error: 'DELETE_USER_FAILED',
               message:
-                error instanceof Error ? error.message : 'Failed to delete user',
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to delete user',
             },
             { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
           )

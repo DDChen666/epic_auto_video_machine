@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
-import { encrypt, decrypt, hash, verifyHash, generateEncryptionKey } from '../encryption'
+import {
+  encrypt,
+  decrypt,
+  hash,
+  verifyHash,
+  generateEncryptionKey,
+} from '../encryption'
 
 // Mock UserRole enum for testing
 enum UserRole {
   USER = 'USER',
   PREMIUM = 'PREMIUM',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
 }
 
 // Mock auth functions for testing
@@ -29,10 +35,7 @@ const PERMISSIONS = {
 } as const
 
 const ROLE_PERMISSIONS = {
-  [UserRole.USER]: [
-    PERMISSIONS.PROJECT_CREATE,
-    PERMISSIONS.PROJECT_READ_OWN,
-  ],
+  [UserRole.USER]: [PERMISSIONS.PROJECT_CREATE, PERMISSIONS.PROJECT_READ_OWN],
   [UserRole.PREMIUM]: [
     PERMISSIONS.PROJECT_CREATE,
     PERMISSIONS.PROJECT_READ_OWN,
@@ -66,24 +69,40 @@ describe('Authentication System', () => {
 
   describe('Permissions', () => {
     it('should grant correct permissions to USER role', () => {
-      expect(hasPermission(UserRole.USER, PERMISSIONS.PROJECT_CREATE)).toBe(true)
-      expect(hasPermission(UserRole.USER, PERMISSIONS.PROJECT_READ_OWN)).toBe(true)
+      expect(hasPermission(UserRole.USER, PERMISSIONS.PROJECT_CREATE)).toBe(
+        true
+      )
+      expect(hasPermission(UserRole.USER, PERMISSIONS.PROJECT_READ_OWN)).toBe(
+        true
+      )
       expect(hasPermission(UserRole.USER, PERMISSIONS.BYO_API_KEY)).toBe(false)
       expect(hasPermission(UserRole.USER, PERMISSIONS.USER_MANAGE)).toBe(false)
     })
 
     it('should grant correct permissions to PREMIUM role', () => {
-      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.PROJECT_CREATE)).toBe(true)
-      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.BYO_API_KEY)).toBe(true)
-      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.PRIORITY_QUEUE)).toBe(true)
-      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.USER_MANAGE)).toBe(false)
+      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.PROJECT_CREATE)).toBe(
+        true
+      )
+      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.BYO_API_KEY)).toBe(
+        true
+      )
+      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.PRIORITY_QUEUE)).toBe(
+        true
+      )
+      expect(hasPermission(UserRole.PREMIUM, PERMISSIONS.USER_MANAGE)).toBe(
+        false
+      )
     })
 
     it('should grant correct permissions to ADMIN role', () => {
-      expect(hasPermission(UserRole.ADMIN, PERMISSIONS.PROJECT_CREATE)).toBe(true)
+      expect(hasPermission(UserRole.ADMIN, PERMISSIONS.PROJECT_CREATE)).toBe(
+        true
+      )
       expect(hasPermission(UserRole.ADMIN, PERMISSIONS.BYO_API_KEY)).toBe(true)
       expect(hasPermission(UserRole.ADMIN, PERMISSIONS.USER_MANAGE)).toBe(true)
-      expect(hasPermission(UserRole.ADMIN, PERMISSIONS.SYSTEM_MONITOR)).toBe(true)
+      expect(hasPermission(UserRole.ADMIN, PERMISSIONS.SYSTEM_MONITOR)).toBe(
+        true
+      )
     })
 
     it('should return all permissions for each role', () => {
@@ -101,7 +120,7 @@ describe('Authentication System', () => {
     it('should hash and verify passwords correctly', () => {
       const password = 'test-password-123'
       const hashed = hash(password)
-      
+
       expect(hashed).not.toBe(password)
       expect(verifyHash(password, hashed)).toBe(true)
       expect(verifyHash('wrong-password', hashed)).toBe(false)

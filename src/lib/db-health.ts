@@ -36,7 +36,9 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
     }
   } catch (error) {
     connection = false
-    errors.push(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    errors.push(
+      `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 
   const latency = Date.now() - startTime
@@ -45,7 +47,10 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
   let status: DatabaseHealthStatus['status'] = 'healthy'
   if (!connection) {
     status = 'unhealthy'
-  } else if (latency > DATABASE_CONFIG.CONNECTION_TIMEOUT / 2 || errors.length > 0) {
+  } else if (
+    latency > DATABASE_CONFIG.CONNECTION_TIMEOUT / 2 ||
+    errors.length > 0
+  ) {
     status = 'degraded'
   }
 
@@ -148,7 +153,9 @@ export async function performDatabaseMaintenance(): Promise<{
   try {
     expiredAssetsDeleted = await DatabaseService.cleanupExpiredAssets()
   } catch (error) {
-    errors.push(`Asset cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    errors.push(
+      `Asset cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 
   return {
@@ -186,8 +193,10 @@ export async function validateDatabaseSchema(): Promise<{
       'presets',
     ]
 
-    const existingTables = tables.map((t) => t.table_name)
-    const missingTables = requiredTables.filter((table) => !existingTables.includes(table))
+    const existingTables = tables.map(t => t.table_name)
+    const missingTables = requiredTables.filter(
+      table => !existingTables.includes(table)
+    )
 
     if (missingTables.length > 0) {
       issues.push(`Missing tables: ${missingTables.join(', ')}`)
@@ -216,7 +225,9 @@ export async function validateDatabaseSchema(): Promise<{
       issues.push(`Found ${orphanedJobs[0].count} orphaned jobs`)
     }
   } catch (error) {
-    issues.push(`Schema validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    issues.push(
+      `Schema validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 
   return {

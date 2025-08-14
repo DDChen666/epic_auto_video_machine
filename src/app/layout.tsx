@@ -7,8 +7,10 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Epic Auto Video Machine',
-  description: 'Transform your stories into stunning videos automatically with AI-powered scene generation, voice synthesis, and professional editing.',
-  keywords: 'video generation, AI, automation, TTS, image generation, Gemini API',
+  description:
+    'Transform your stories into stunning videos automatically with AI-powered scene generation, voice synthesis, and professional editing.',
+  keywords:
+    'video generation, AI, automation, TTS, image generation, Gemini API',
 }
 
 export default function RootLayout({
@@ -19,10 +21,7 @@ export default function RootLayout({
   return (
     <html lang="zh-TW" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          defaultTheme="dark"
-          storageKey="epic-video-theme"
-        >
+        <ThemeProvider defaultTheme="dark" storageKey="epic-video-theme">
           {children}
         </ThemeProvider>
       </body>

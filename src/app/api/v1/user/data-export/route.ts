@@ -9,7 +9,7 @@ import { HTTP_STATUS } from '@/lib/constants'
 async function handleDataExport(request: NextRequest, context: any) {
   try {
     const exportData = await UserService.exportUserData(context.userId)
-    
+
     return NextResponse.json({
       success: true,
       data: exportData,
@@ -20,7 +20,8 @@ async function handleDataExport(request: NextRequest, context: any) {
       {
         success: false,
         error: 'DATA_EXPORT_FAILED',
-        message: error instanceof Error ? error.message : 'Failed to export data',
+        message:
+          error instanceof Error ? error.message : 'Failed to export data',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )

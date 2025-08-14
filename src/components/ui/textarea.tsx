@@ -31,7 +31,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const variantClasses = {
       default: 'bg-white/5 border-white/20 focus:border-brand-primary',
       glass: 'glass border-glass-border focus:border-brand-primary',
-      outline: 'bg-transparent border-gray-300 dark:border-gray-600 focus:border-brand-primary',
+      outline:
+        'bg-transparent border-gray-300 dark:border-gray-600 focus:border-brand-primary',
     }
 
     return (
@@ -49,7 +50,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             {label}
           </motion.label>
         )}
-        
+
         <motion.textarea
           className={cn(
             'flex min-h-[120px] w-full rounded-input px-3 py-2 text-sm transition-all duration-200',
@@ -57,7 +58,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             'disabled:cursor-not-allowed disabled:opacity-50',
             variantClasses[variant],
             !resize && 'resize-none',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+            error &&
+              'border-red-500 focus:border-red-500 focus:ring-red-500/20',
             className
           )}
           ref={ref}
@@ -67,7 +69,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           transition={{ duration: 0.2 }}
           {...props}
         />
-        
+
         {(error || helperText) && (
           <motion.p
             initial={{ opacity: 0, y: -5 }}

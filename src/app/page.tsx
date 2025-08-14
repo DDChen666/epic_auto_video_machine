@@ -83,7 +83,8 @@ export default function Home() {
             設計系統展示
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            展示 Epic Auto Video Machine 的完整設計系統，包含玻璃擬態效果、漸層色彩和流暢動效。
+            展示 Epic Auto Video Machine
+            的完整設計系統，包含玻璃擬態效果、漸層色彩和流暢動效。
           </p>
         </motion.div>
 
@@ -93,9 +94,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>按鈕元件</CardTitle>
-              <CardDescription>
-                各種樣式和尺寸的按鈕元件
-              </CardDescription>
+              <CardDescription>各種樣式和尺寸的按鈕元件</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
@@ -123,9 +122,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>表單元件</CardTitle>
-              <CardDescription>
-                輸入框、選擇器和其他表單元件
-              </CardDescription>
+              <CardDescription>輸入框、選擇器和其他表單元件</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
@@ -154,9 +151,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>進度與載入</CardTitle>
-              <CardDescription>
-                進度條和載入動畫元件
-              </CardDescription>
+              <CardDescription>進度條和載入動畫元件</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -193,9 +188,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>互動元件</CardTitle>
-              <CardDescription>
-                開關、徽章和其他互動元件
-              </CardDescription>
+              <CardDescription>開關、徽章和其他互動元件</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Toggle
@@ -221,9 +214,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>彈窗與通知</CardTitle>
-              <CardDescription>
-                模態框和吐司通知元件
-              </CardDescription>
+              <CardDescription>模態框和吐司通知元件</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button onClick={() => setModalOpen(true)} variant="gradient">
@@ -266,9 +257,7 @@ export default function Home() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>模板風格</CardTitle>
-              <CardDescription>
-                三種預設模板的視覺風格展示
-              </CardDescription>
+              <CardDescription>三種預設模板的視覺風格展示</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-3">

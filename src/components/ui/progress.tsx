@@ -68,7 +68,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
             )}
           </div>
         )}
-        
+
         <div
           className={cn(
             'relative w-full rounded-full overflow-hidden',
@@ -91,7 +91,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
               ease: 'easeOut',
             }}
           />
-          
+
           {animated && (
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

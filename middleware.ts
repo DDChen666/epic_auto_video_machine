@@ -13,17 +13,17 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith('/api/v1')) {
           return !!token
         }
-        
+
         // Protect admin routes
         if (req.nextUrl.pathname.startsWith('/admin')) {
           return token?.role === 'ADMIN'
         }
-        
+
         // Protect dashboard routes
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
           return !!token
         }
-        
+
         return true
       },
     },
@@ -31,9 +31,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: [
-    '/api/v1/:path*',
-    '/dashboard/:path*',
-    '/admin/:path*',
-  ],
+  matcher: ['/api/v1/:path*', '/dashboard/:path*', '/admin/:path*'],
 }

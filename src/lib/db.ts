@@ -9,7 +9,10 @@ declare global {
 export const prisma =
   globalThis.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log:
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'error', 'warn']
+        : ['error'],
     errorFormat: 'pretty',
   })
 
@@ -201,15 +204,16 @@ export class DatabaseService {
    */
   static async getDatabaseStats() {
     try {
-      const [userCount, projectCount, jobCount, assetCount, activeJobs] = await Promise.all([
-        prisma.user.count(),
-        prisma.project.count(),
-        prisma.job.count(),
-        prisma.asset.count(),
-        prisma.job.count({
-          where: { status: { in: ['QUEUED', 'RUNNING'] } },
-        }),
-      ])
+      const [userCount, projectCount, jobCount, assetCount, activeJobs] =
+        await Promise.all([
+          prisma.user.count(),
+          prisma.project.count(),
+          prisma.job.count(),
+          prisma.asset.count(),
+          prisma.job.count({
+            where: { status: { in: ['QUEUED', 'RUNNING'] } },
+          }),
+        ])
 
       return {
         users: userCount,
@@ -241,8 +245,8 @@ export class DatabaseService {
         totalScenes,
       ] = await Promise.all([
         prisma.project.count({ where: { userId } }),
-        prisma.project.count({ 
-          where: { userId, createdAt: { gte: today } } 
+        prisma.project.count({
+          where: { userId, createdAt: { gte: today } },
         }),
         prisma.asset.count({ where: { userId } }),
         prisma.job.count({
@@ -313,20 +317,37 @@ export class DatabaseError extends Error {
 
 export function handlePrismaError(error: any): DatabaseError {
   if (error.code === 'P2002') {
-    return new DatabaseError('Unique constraint violation', error.code, error.meta)
+    return new DatabaseError(
+      'Unique constraint violation',
+      error.code,
+      error.meta
+    )
   }
   if (error.code === 'P2025') {
     return new DatabaseError('Record not found', error.code, error.meta)
   }
   if (error.code === 'P2003') {
-    return new DatabaseError('Foreign key constraint violation', error.code, error.meta)
+    return new DatabaseError(
+      'Foreign key constraint violation',
+      error.code,
+      error.meta
+    )
   }
-  return new DatabaseError(error.message || 'Database operation failed', error.code, error.meta)
+  return new DatabaseError(
+    error.message || 'Database operation failed',
+    error.code,
+    error.meta
+  )
 }
 
 // Transaction helper
 export async function withTransaction<T>(
-  callback: (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>) => Promise<T>
+  callback: (
+    tx: Omit<
+      PrismaClient,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
+    >
+  ) => Promise<T>
 ): Promise<T> {
   return await prisma.$transaction(callback)
 }

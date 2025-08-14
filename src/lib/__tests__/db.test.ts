@@ -15,8 +15,12 @@ describe('Database Connection', () => {
 
   afterAll(async () => {
     // Clean up test data
-    await prisma.scene.deleteMany({ where: { project: { title: { contains: 'Test' } } } })
-    await prisma.job.deleteMany({ where: { project: { title: { contains: 'Test' } } } })
+    await prisma.scene.deleteMany({
+      where: { project: { title: { contains: 'Test' } } },
+    })
+    await prisma.job.deleteMany({
+      where: { project: { title: { contains: 'Test' } } },
+    })
     await prisma.project.deleteMany({ where: { title: { contains: 'Test' } } })
     await prisma.preset.deleteMany({ where: { name: { contains: 'Test' } } })
     await prisma.asset.deleteMany({ where: { uri: { contains: 'test' } } })
@@ -216,7 +220,7 @@ describe('Database Connection', () => {
 
   it('should get database statistics', async () => {
     const stats = await DatabaseService.getDatabaseStats()
-    
+
     expect(stats).not.toBeNull()
     expect(typeof stats?.users).toBe('number')
     expect(typeof stats?.projects).toBe('number')

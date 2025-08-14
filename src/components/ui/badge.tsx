@@ -19,14 +19,24 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   (
-    { className, variant = 'default', size = 'md', animate = true, children, ...props },
+    {
+      className,
+      variant = 'default',
+      size = 'md',
+      animate = true,
+      children,
+      ...props
+    },
     ref
   ) => {
     const variantClasses = {
       default: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-      secondary: 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20',
-      success: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+      secondary:
+        'bg-brand-primary/10 text-brand-primary border border-brand-primary/20',
+      success:
+        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+      warning:
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
       error: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
       glass: 'glass text-white',
       gradient: 'gradient-bg text-white shadow-brand-glow',
