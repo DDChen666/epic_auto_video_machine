@@ -10,7 +10,7 @@ jest.mock('next-auth')
 jest.mock('@/lib/project-service')
 jest.mock('@/lib/scene-segmentation-service')
 jest.mock('@/lib/auth', () => ({
-  authOptions: {}
+  authOptions: {},
 }))
 jest.mock('@/lib/api-utils', () => ({
   validateRequest: jest.fn(),
@@ -18,12 +18,21 @@ jest.mock('@/lib/api-utils', () => ({
   createSuccessResponse: jest.fn(),
 }))
 
-const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>
-const MockedProjectService = ProjectService as jest.MockedClass<typeof ProjectService>
-const MockedSceneSegmentationService = SceneSegmentationService as jest.MockedClass<typeof SceneSegmentationService>
+const mockGetServerSession = getServerSession as jest.MockedFunction<
+  typeof getServerSession
+>
+const MockedProjectService = ProjectService as jest.MockedClass<
+  typeof ProjectService
+>
+const MockedSceneSegmentationService =
+  SceneSegmentationService as jest.MockedClass<typeof SceneSegmentationService>
 
 // Import mocked functions
-const { validateRequest, createErrorResponse, createSuccessResponse } = require('@/lib/api-utils')
+const {
+  validateRequest,
+  createErrorResponse,
+  createSuccessResponse,
+} = require('@/lib/api-utils')
 
 describe('/api/v1/projects/[id]/scenes', () => {
   const mockSession = {
@@ -47,10 +56,13 @@ describe('/api/v1/projects/[id]/scenes', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetServerSession.mockResolvedValue(mockSession)
-    
+
     // Setup API utils mocks
-    validateRequest.mockImplementation((schema, data) => ({ success: true, data }))
-    createSuccessResponse.mockImplementation((data) => ({
+    validateRequest.mockImplementation((schema, data) => ({
+      success: true,
+      data,
+    }))
+    createSuccessResponse.mockImplementation(data => ({
       json: () => Promise.resolve({ success: true, data }),
       status: 200,
     }))
@@ -67,7 +79,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
       }
       MockedProjectService.mockImplementation(() => mockProjectService as any)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes'
+      )
       const response = await GET(request, { params: { id: 'test-project-id' } })
       const data = await response.json()
 
@@ -83,7 +97,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
       }
       MockedProjectService.mockImplementation(() => mockProjectService as any)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/nonexistent/scenes')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/nonexistent/scenes'
+      )
       const response = await GET(request, { params: { id: 'nonexistent' } })
       const data = await response.json()
 
@@ -94,7 +110,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
     it('should return 401 for unauthenticated request', async () => {
       mockGetServerSession.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes'
+      )
       const response = await GET(request, { params: { id: 'test-project-id' } })
       const data = await response.json()
 
@@ -136,7 +154,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
         segmentText: jest.fn().mockResolvedValue(mockSegmentationResult),
         validateScenes: jest.fn().mockReturnValue(mockValidationResult),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
     })
 
     it('should segment text successfully', async () => {
@@ -149,13 +169,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/segment', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/segment',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await POST(request, { params: { id: 'test-project-id' } })
+      const response = await POST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -172,13 +197,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/segment', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/segment',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await POST(request, { params: { id: 'test-project-id' } })
+      const response = await POST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -193,13 +223,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/segment', {
-        method: 'POST',
-        body: JSON.stringify(invalidRequestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/segment',
+        {
+          method: 'POST',
+          body: JSON.stringify(invalidRequestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await POST(request, { params: { id: 'test-project-id' } })
+      const response = await POST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -208,22 +243,31 @@ describe('/api/v1/projects/[id]/scenes', () => {
 
     it('should handle segmentation service errors', async () => {
       const mockSegmentationService = {
-        segmentText: jest.fn().mockRejectedValue(new Error('Segmentation failed')),
+        segmentText: jest
+          .fn()
+          .mockRejectedValue(new Error('Segmentation failed')),
         validateScenes: jest.fn().mockReturnValue(mockValidationResult),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
 
       const requestBody = {
         text: '測試文字內容',
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/segment', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/segment',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await POST(request, { params: { id: 'test-project-id' } })
+      const response = await POST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(500)
@@ -247,7 +291,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
           warnings: [],
         }),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
     })
 
     it('should update project scenes', async () => {
@@ -258,11 +304,14 @@ describe('/api/v1/projects/[id]/scenes', () => {
         ],
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes', {
-        method: 'PUT',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes',
+        {
+          method: 'PUT',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'test-project-id' } })
       const data = await response.json()
@@ -280,7 +329,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
           warnings: [],
         }),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
 
       const requestBody = {
         scenes: [
@@ -288,11 +339,14 @@ describe('/api/v1/projects/[id]/scenes', () => {
         ],
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes', {
-        method: 'PUT',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes',
+        {
+          method: 'PUT',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'test-project-id' } })
       const data = await response.json()
@@ -321,7 +375,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
           warnings: [],
         }),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
     })
 
     it('should merge scenes', async () => {
@@ -332,13 +388,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -355,13 +416,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -378,13 +444,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -401,13 +472,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -423,13 +499,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -445,7 +526,9 @@ describe('/api/v1/projects/[id]/scenes', () => {
           warnings: [],
         }),
       }
-      MockedSceneSegmentationService.mockImplementation(() => mockSegmentationService as any)
+      MockedSceneSegmentationService.mockImplementation(
+        () => mockSegmentationService as any
+      )
 
       const requestBody = {
         operation: {
@@ -455,13 +538,18 @@ describe('/api/v1/projects/[id]/scenes', () => {
         },
       }
 
-      const request = new NextRequest('http://localhost/api/v1/projects/test-project-id/scenes/edit', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/test-project-id/scenes/edit',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      const response = await EditPOST(request, { params: { id: 'test-project-id' } })
+      const response = await EditPOST(request, {
+        params: { id: 'test-project-id' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(404)

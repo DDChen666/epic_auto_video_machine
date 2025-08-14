@@ -20,33 +20,41 @@ interface RouteContext {
 // Validation schemas
 const ProjectConfigUpdateSchema = z.object({
   aspect_ratio: z.enum(['9:16', '16:9', '1:1']).optional(),
-  template: z.object({
-    name: z.enum(['classic', 'dark', 'vivid']).optional(),
-    transitions: z.enum(['none', 'fade', 'zoom']).optional(),
-    transition_duration: z.number().min(100).max(2000).optional(),
-    background_music: z.boolean().optional(),
-    bgm_volume: z.number().min(-30).max(0).optional(),
-  }).optional(),
-  voice: z.object({
-    type: z.enum(['male', 'female', 'natural']).optional(),
-    speed: z.number().min(0.5).max(2.0).optional(),
-    language: z.enum(['zh-TW', 'en']).optional(),
-    accent: z.enum(['taiwan', 'mainland', 'hongkong']).optional(),
-  }).optional(),
-  generation: z.object({
-    images_per_scene: z.enum([1, 2, 3]).optional(),
-    image_quality: z.enum(['standard', 'high']).optional(),
-    retry_attempts: z.number().min(1).max(5).optional(),
-    timeout_seconds: z.number().min(60).max(600).optional(),
-    smart_crop: z.boolean().optional(),
-  }).optional(),
-  safety: z.object({
-    content_policy: z.enum(['strict', 'standard']).optional(),
-    blocked_words: z.array(z.string()).optional(),
-    error_strategy: z.enum(['skip', 'mask', 'fail']).optional(),
-    adult_content: z.enum(['block', 'warn', 'allow']).optional(),
-    violence_filter: z.boolean().optional(),
-  }).optional(),
+  template: z
+    .object({
+      name: z.enum(['classic', 'dark', 'vivid']).optional(),
+      transitions: z.enum(['none', 'fade', 'zoom']).optional(),
+      transition_duration: z.number().min(100).max(2000).optional(),
+      background_music: z.boolean().optional(),
+      bgm_volume: z.number().min(-30).max(0).optional(),
+    })
+    .optional(),
+  voice: z
+    .object({
+      type: z.enum(['male', 'female', 'natural']).optional(),
+      speed: z.number().min(0.5).max(2.0).optional(),
+      language: z.enum(['zh-TW', 'en']).optional(),
+      accent: z.enum(['taiwan', 'mainland', 'hongkong']).optional(),
+    })
+    .optional(),
+  generation: z
+    .object({
+      images_per_scene: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+      image_quality: z.enum(['standard', 'high']).optional(),
+      retry_attempts: z.number().min(1).max(5).optional(),
+      timeout_seconds: z.number().min(60).max(600).optional(),
+      smart_crop: z.boolean().optional(),
+    })
+    .optional(),
+  safety: z
+    .object({
+      content_policy: z.enum(['strict', 'standard']).optional(),
+      blocked_words: z.array(z.string()).optional(),
+      error_strategy: z.enum(['skip', 'mask', 'fail']).optional(),
+      adult_content: z.enum(['block', 'warn', 'allow']).optional(),
+      violence_filter: z.boolean().optional(),
+    })
+    .optional(),
 })
 
 const UpdateProjectSchema = z.object({
@@ -56,7 +64,9 @@ const UpdateProjectSchema = z.object({
     .max(255, 'Title too long')
     .optional(),
   description: z.string().max(1000, 'Description too long').optional(),
-  status: z.enum(['DRAFT', 'READY', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
+  status: z
+    .enum(['DRAFT', 'READY', 'PROCESSING', 'COMPLETED', 'FAILED'])
+    .optional(),
   config: ProjectConfigUpdateSchema.optional(),
 })
 
@@ -197,8 +207,6 @@ export const DELETE = withApiHandler(
     })
   }
 )
-
-
 
 /**
  * OPTIONS /api/v1/projects/[id] - CORS preflight

@@ -3,28 +3,36 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SceneSegmentationService } from '@/lib/scene-segmentation-service'
 import { ProjectService } from '@/lib/project-service'
-import { validateRequest, createErrorResponse, createSuccessResponse } from '@/lib/api-utils'
+import {
+  validateRequest,
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api-utils'
 import { z } from 'zod'
 
 // Request validation schemas
 const segmentTextSchema = z.object({
   text: z.string().min(1, 'Text is required').max(50000, 'Text too long'),
-  config: z.object({
-    min_length: z.number().min(50).max(500).optional(),
-    max_length: z.number().min(100).max(1000).optional(),
-    use_llm: z.boolean().optional(),
-    preserve_paragraphs: z.boolean().optional(),
-    smart_split: z.boolean().optional(),
-  }).optional(),
+  config: z
+    .object({
+      min_length: z.number().min(50).max(500).optional(),
+      max_length: z.number().min(100).max(1000).optional(),
+      use_llm: z.boolean().optional(),
+      preserve_paragraphs: z.boolean().optional(),
+      smart_split: z.boolean().optional(),
+    })
+    .optional(),
 })
 
 const updateScenesSchema = z.object({
-  scenes: z.array(z.object({
-    id: z.string(),
-    index: z.number().min(0),
-    text: z.string().min(1, 'Scene text cannot be empty'),
-    prompt: z.string().optional(),
-  })),
+  scenes: z.array(
+    z.object({
+      id: z.string(),
+      index: z.number().min(0),
+      text: z.string().min(1, 'Scene text cannot be empty'),
+      prompt: z.string().optional(),
+    })
+  ),
 })
 
 /**
@@ -106,7 +114,10 @@ export async function POST(
     }
 
     // Initialize segmentation service
-    const segmentationService = new SceneSegmentationService(authContext, config)
+    const segmentationService = new SceneSegmentationService(
+      authContext,
+      config
+    )
 
     // Segment text
     const result = await segmentationService.segmentText(text, {
@@ -115,7 +126,10 @@ export async function POST(
     })
 
     // Validate segmented scenes
-    const validation_result = segmentationService.validateScenes(result.scenes, config)
+    const validation_result = segmentationService.validateScenes(
+      result.scenes,
+      config
+    )
 
     // Update project with segmented scenes
     const sceneData = result.scenes.map(scene => ({

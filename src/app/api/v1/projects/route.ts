@@ -16,33 +16,41 @@ import type { ProjectConfig, ProjectStatus } from '@/types'
 // Validation schemas
 const ProjectConfigSchema = z.object({
   aspect_ratio: z.enum(['9:16', '16:9', '1:1']).default('9:16'),
-  template: z.object({
-    name: z.enum(['classic', 'dark', 'vivid']).default('classic'),
-    transitions: z.enum(['none', 'fade', 'zoom']).default('fade'),
-    transition_duration: z.number().min(100).max(2000).default(500),
-    background_music: z.boolean().default(true),
-    bgm_volume: z.number().min(-30).max(0).default(-18),
-  }).default(DEFAULT_PROJECT_CONFIG.template),
-  voice: z.object({
-    type: z.enum(['male', 'female', 'natural']).default('natural'),
-    speed: z.number().min(0.5).max(2.0).default(1.0),
-    language: z.enum(['zh-TW', 'en']).default('zh-TW'),
-    accent: z.enum(['taiwan', 'mainland', 'hongkong']).default('taiwan'),
-  }).default(DEFAULT_PROJECT_CONFIG.voice),
-  generation: z.object({
-    images_per_scene: z.enum([1, 2, 3]).default(1),
-    image_quality: z.enum(['standard', 'high']).default('standard'),
-    retry_attempts: z.number().min(1).max(5).default(3),
-    timeout_seconds: z.number().min(60).max(600).default(300),
-    smart_crop: z.boolean().default(true),
-  }).default(DEFAULT_PROJECT_CONFIG.generation),
-  safety: z.object({
-    content_policy: z.enum(['strict', 'standard']).default('standard'),
-    blocked_words: z.array(z.string()).default([]),
-    error_strategy: z.enum(['skip', 'mask', 'fail']).default('skip'),
-    adult_content: z.enum(['block', 'warn', 'allow']).default('block'),
-    violence_filter: z.boolean().default(true),
-  }).default(DEFAULT_PROJECT_CONFIG.safety),
+  template: z
+    .object({
+      name: z.enum(['classic', 'dark', 'vivid']).default('classic'),
+      transitions: z.enum(['none', 'fade', 'zoom']).default('fade'),
+      transition_duration: z.number().min(100).max(2000).default(500),
+      background_music: z.boolean().default(true),
+      bgm_volume: z.number().min(-30).max(0).default(-18),
+    })
+    .default(DEFAULT_PROJECT_CONFIG.template),
+  voice: z
+    .object({
+      type: z.enum(['male', 'female', 'natural']).default('natural'),
+      speed: z.number().min(0.5).max(2.0).default(1.0),
+      language: z.enum(['zh-TW', 'en']).default('zh-TW'),
+      accent: z.enum(['taiwan', 'mainland', 'hongkong']).default('taiwan'),
+    })
+    .default(DEFAULT_PROJECT_CONFIG.voice),
+  generation: z
+    .object({
+      images_per_scene: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
+      image_quality: z.enum(['standard', 'high']).default('standard'),
+      retry_attempts: z.number().min(1).max(5).default(3),
+      timeout_seconds: z.number().min(60).max(600).default(300),
+      smart_crop: z.boolean().default(true),
+    })
+    .default(DEFAULT_PROJECT_CONFIG.generation),
+  safety: z
+    .object({
+      content_policy: z.enum(['strict', 'standard']).default('standard'),
+      blocked_words: z.array(z.string()).default([]),
+      error_strategy: z.enum(['skip', 'mask', 'fail']).default('skip'),
+      adult_content: z.enum(['block', 'warn', 'allow']).default('block'),
+      violence_filter: z.boolean().default(true),
+    })
+    .default(DEFAULT_PROJECT_CONFIG.safety),
 })
 
 const CreateProjectSchema = z.object({
@@ -76,11 +84,11 @@ const ListProjectsSchema = z.object({
 export const GET = withApiHandler(async (request: NextRequest) => {
   return withAuth(request, async (req, context) => {
     const { searchParams } = new URL(req.url)
-    
+
     // Parse and validate query parameters
     const queryParams = Object.fromEntries(searchParams.entries())
     const validation = ListProjectsSchema.safeParse(queryParams)
-    
+
     if (!validation.success) {
       return validationErrorResponse(validation.error)
     }
@@ -136,7 +144,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
 
     try {
       const projectService = new ProjectService(context)
-      
+
       // Merge with default config
       const projectConfig: ProjectConfig = {
         ...DEFAULT_PROJECT_CONFIG,

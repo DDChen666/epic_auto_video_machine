@@ -26,7 +26,8 @@ jest.mock('../src/lib/prompt-generation-service', () => ({
         {
           sceneIndex: 1,
           originalText: '一個美麗的女孩在公園裡散步',
-          visualPrompt: 'beautiful girl walking in park, professional photography',
+          visualPrompt:
+            'beautiful girl walking in park, professional photography',
           visualElements: {
             subject: ['女孩'],
             environment: ['公園'],
@@ -46,7 +47,9 @@ jest.mock('../src/lib/prompt-generation-service', () => ({
         },
         suggestions: [],
       }),
-      generatePromptPreview: jest.fn().mockReturnValue('beautiful • girl • walking • park • professional'),
+      generatePromptPreview: jest
+        .fn()
+        .mockReturnValue('beautiful • girl • walking • park • professional'),
     }),
   },
 }))
@@ -108,20 +111,25 @@ async function testPromptAPI() {
   try {
     // Test 1: POST - Generate prompts
     console.log('📝 Test 1: POST /api/v1/projects/[id]/prompts')
-    const postRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-      method: 'POST',
-      body: JSON.stringify({
-        scenes: [
-          {
-            id: 'scene-1',
-            index: 1,
-            text: '一個美麗的女孩在公園裡散步',
-          },
-        ],
-      }),
-    })
+    const postRequest = new NextRequest(
+      'http://localhost/api/v1/projects/project-123/prompts',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          scenes: [
+            {
+              id: 'scene-1',
+              index: 1,
+              text: '一個美麗的女孩在公園裡散步',
+            },
+          ],
+        }),
+      }
+    )
 
-    const postResponse = await POST(postRequest, { params: { id: 'project-123' } })
+    const postResponse = await POST(postRequest, {
+      params: { id: 'project-123' },
+    })
     const postData = await postResponse.json()
 
     console.log('  Status:', postResponse.status)
@@ -132,13 +140,16 @@ async function testPromptAPI() {
 
     // Test 2: PUT - Validate edited prompt
     console.log('🔒 Test 2: PUT /api/v1/projects/[id]/prompts')
-    const putRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-      method: 'PUT',
-      body: JSON.stringify({
-        originalPrompt: 'original prompt',
-        editedPrompt: 'edited safe prompt',
-      }),
-    })
+    const putRequest = new NextRequest(
+      'http://localhost/api/v1/projects/project-123/prompts',
+      {
+        method: 'PUT',
+        body: JSON.stringify({
+          originalPrompt: 'original prompt',
+          editedPrompt: 'edited safe prompt',
+        }),
+      }
+    )
 
     const putResponse = await PUT(putRequest, { params: { id: 'project-123' } })
     const putData = await putResponse.json()
@@ -151,7 +162,9 @@ async function testPromptAPI() {
 
     // Test 3: GET - Get prompt previews
     console.log('👀 Test 3: GET /api/v1/projects/[id]/prompts/preview')
-    const getRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts/preview')
+    const getRequest = new NextRequest(
+      'http://localhost/api/v1/projects/project-123/prompts/preview'
+    )
 
     const getResponse = await GET(getRequest, { params: { id: 'project-123' } })
     const getData = await getResponse.json()
@@ -165,7 +178,6 @@ async function testPromptAPI() {
     console.log('')
 
     console.log('🎉 All API tests completed successfully!')
-
   } catch (error) {
     console.error('❌ API test failed:', error)
     process.exit(1)

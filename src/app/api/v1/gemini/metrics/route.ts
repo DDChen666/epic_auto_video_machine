@@ -11,7 +11,7 @@ import { HTTP_STATUS } from '@/lib/api-utils'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
 
     // Get user metrics
     const metrics = geminiMonitoring.getMetrics(session.user.id, windowMs)
-    const performanceIndicators = geminiMonitoring.getPerformanceIndicators(session.user.id)
+    const performanceIndicators = geminiMonitoring.getPerformanceIndicators(
+      session.user.id
+    )
     const healthCheck = geminiMonitoring.checkUserHealth(session.user.id)
 
     if (format === 'prometheus') {
@@ -58,11 +60,11 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error getting Gemini metrics:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to get metrics' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get metrics',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )
@@ -76,7 +78,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -104,15 +106,31 @@ export async function POST(request: NextRequest) {
     }
 
     const allMetrics = geminiMonitoring.getAllMetrics(windowMs)
-    
+
     // Aggregate platform-wide statistics
     const platformStats = {
       totalUsers: Object.keys(allMetrics).length,
-      totalRequests: Object.values(allMetrics).reduce((sum, m) => sum + m.requests.total, 0),
-      totalSuccessful: Object.values(allMetrics).reduce((sum, m) => sum + m.requests.successful, 0),
-      totalFailed: Object.values(allMetrics).reduce((sum, m) => sum + m.requests.failed, 0),
-      averageLatency: Object.values(allMetrics).reduce((sum, m) => sum + m.latency.average, 0) / Object.keys(allMetrics).length,
-      totalCost: Object.values(allMetrics).reduce((sum, m) => sum + m.costs.estimatedCost, 0),
+      totalRequests: Object.values(allMetrics).reduce(
+        (sum, m) => sum + m.requests.total,
+        0
+      ),
+      totalSuccessful: Object.values(allMetrics).reduce(
+        (sum, m) => sum + m.requests.successful,
+        0
+      ),
+      totalFailed: Object.values(allMetrics).reduce(
+        (sum, m) => sum + m.requests.failed,
+        0
+      ),
+      averageLatency:
+        Object.values(allMetrics).reduce(
+          (sum, m) => sum + m.latency.average,
+          0
+        ) / Object.keys(allMetrics).length,
+      totalCost: Object.values(allMetrics).reduce(
+        (sum, m) => sum + m.costs.estimatedCost,
+        0
+      ),
     }
 
     const response: any = {
@@ -131,11 +149,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     console.error('Error getting admin metrics:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to get admin metrics' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get admin metrics',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )

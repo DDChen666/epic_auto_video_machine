@@ -30,8 +30,14 @@ const mockProjectData = {
 
 // Validation functions
 function validateProjectConfig(config: ProjectConfig): boolean {
-  const requiredFields = ['aspect_ratio', 'template', 'voice', 'generation', 'safety']
-  
+  const requiredFields = [
+    'aspect_ratio',
+    'template',
+    'voice',
+    'generation',
+    'safety',
+  ]
+
   for (const field of requiredFields) {
     if (!(field in config)) {
       console.error(`Missing required field: ${field}`)
@@ -60,7 +66,10 @@ function validateProjectConfig(config: ProjectConfig): boolean {
   return true
 }
 
-function validateStatusTransition(from: ProjectStatus, to: ProjectStatus): boolean {
+function validateStatusTransition(
+  from: ProjectStatus,
+  to: ProjectStatus
+): boolean {
   const validTransitions: Record<ProjectStatus, ProjectStatus[]> = {
     DRAFT: ['READY', 'FAILED'],
     READY: ['PROCESSING', 'DRAFT'],
@@ -73,16 +82,26 @@ function validateStatusTransition(from: ProjectStatus, to: ProjectStatus): boole
 }
 
 function validateCostEstimate(estimate: any): boolean {
-  const requiredFields = ['llm_cost', 'image_cost', 'tts_cost', 'render_cost', 'total_min', 'total_max', 'currency']
-  
+  const requiredFields = [
+    'llm_cost',
+    'image_cost',
+    'tts_cost',
+    'render_cost',
+    'total_min',
+    'total_max',
+    'currency',
+  ]
+
   for (const field of requiredFields) {
     if (!(field in estimate)) {
       console.error(`Missing cost estimate field: ${field}`)
       return false
     }
-    
+
     if (field !== 'currency' && typeof estimate[field] !== 'number') {
-      console.error(`Invalid cost estimate field type: ${field} should be number`)
+      console.error(
+        `Invalid cost estimate field type: ${field} should be number`
+      )
       return false
     }
   }
@@ -103,7 +122,7 @@ function validateCostEstimate(estimate: any): boolean {
 // Test functions
 async function testProjectValidation() {
   console.log('🧪 Testing project configuration validation...')
-  
+
   // Test valid config
   const validConfig = mockProjectData.config
   if (!validateProjectConfig(validConfig)) {
@@ -123,7 +142,7 @@ async function testProjectValidation() {
 
 async function testStatusTransitions() {
   console.log('🧪 Testing project status transitions...')
-  
+
   // Test valid transitions
   const validTransitions = [
     ['DRAFT', 'READY'],
@@ -159,7 +178,7 @@ async function testStatusTransitions() {
 
 async function testCostEstimation() {
   console.log('🧪 Testing cost estimation validation...')
-  
+
   // Test valid cost estimate
   const validEstimate = {
     llm_cost: 0.01,
@@ -179,7 +198,7 @@ async function testCostEstimation() {
   // Test invalid cost estimate (missing field)
   const invalidEstimate = { ...validEstimate }
   delete invalidEstimate.currency
-  
+
   if (validateCostEstimate(invalidEstimate)) {
     throw new Error('Invalid cost estimate passed validation')
   }
@@ -190,7 +209,7 @@ async function testCostEstimation() {
 
 async function testAPIResponseFormat() {
   console.log('🧪 Testing API response format...')
-  
+
   // Test success response format
   const successResponse = {
     success: true,
@@ -201,7 +220,11 @@ async function testAPIResponseFormat() {
     },
   }
 
-  if (!successResponse.success || !successResponse.data || !successResponse.meta) {
+  if (
+    !successResponse.success ||
+    !successResponse.data ||
+    !successResponse.meta
+  ) {
     throw new Error('Success response format is invalid')
   }
   console.log('✅ Success response format is valid')
@@ -230,31 +253,72 @@ async function testAPIResponseFormat() {
 
 async function testPaginationLogic() {
   console.log('🧪 Testing pagination logic...')
-  
+
   const testCases = [
-    { page: 1, limit: 20, total: 50, expectedPages: 3, expectedHasNext: true, expectedHasPrev: false },
-    { page: 2, limit: 20, total: 50, expectedPages: 3, expectedHasNext: true, expectedHasPrev: true },
-    { page: 3, limit: 20, total: 50, expectedPages: 3, expectedHasNext: false, expectedHasPrev: true },
-    { page: 1, limit: 10, total: 5, expectedPages: 1, expectedHasNext: false, expectedHasPrev: false },
+    {
+      page: 1,
+      limit: 20,
+      total: 50,
+      expectedPages: 3,
+      expectedHasNext: true,
+      expectedHasPrev: false,
+    },
+    {
+      page: 2,
+      limit: 20,
+      total: 50,
+      expectedPages: 3,
+      expectedHasNext: true,
+      expectedHasPrev: true,
+    },
+    {
+      page: 3,
+      limit: 20,
+      total: 50,
+      expectedPages: 3,
+      expectedHasNext: false,
+      expectedHasPrev: true,
+    },
+    {
+      page: 1,
+      limit: 10,
+      total: 5,
+      expectedPages: 1,
+      expectedHasNext: false,
+      expectedHasPrev: false,
+    },
   ]
 
   for (const testCase of testCases) {
-    const { page, limit, total, expectedPages, expectedHasNext, expectedHasPrev } = testCase
-    
+    const {
+      page,
+      limit,
+      total,
+      expectedPages,
+      expectedHasNext,
+      expectedHasPrev,
+    } = testCase
+
     const totalPages = Math.ceil(total / limit)
-    const hasNext = (page * limit) < total
+    const hasNext = page * limit < total
     const hasPrev = page > 1
 
     if (totalPages !== expectedPages) {
-      throw new Error(`Pagination error: expected ${expectedPages} pages, got ${totalPages}`)
+      throw new Error(
+        `Pagination error: expected ${expectedPages} pages, got ${totalPages}`
+      )
     }
-    
+
     if (hasNext !== expectedHasNext) {
-      throw new Error(`Pagination error: expected hasNext=${expectedHasNext}, got ${hasNext}`)
+      throw new Error(
+        `Pagination error: expected hasNext=${expectedHasNext}, got ${hasNext}`
+      )
     }
-    
+
     if (hasPrev !== expectedHasPrev) {
-      throw new Error(`Pagination error: expected hasPrev=${expectedHasPrev}, got ${hasPrev}`)
+      throw new Error(
+        `Pagination error: expected hasPrev=${expectedHasPrev}, got ${hasPrev}`
+      )
     }
   }
 
@@ -264,18 +328,22 @@ async function testPaginationLogic() {
 // Main test runner
 async function runTests() {
   console.log('🚀 Starting Project Management API validation tests...\n')
-  
+
   try {
     await testProjectValidation()
     await testStatusTransitions()
     await testCostEstimation()
     await testAPIResponseFormat()
     await testPaginationLogic()
-    
-    console.log('🎉 All tests passed! Project Management API implementation is valid.')
+
+    console.log(
+      '🎉 All tests passed! Project Management API implementation is valid.'
+    )
     console.log('\n📋 Implementation Summary:')
     console.log('✅ POST /api/v1/projects - Create project')
-    console.log('✅ GET /api/v1/projects - List projects with pagination and filtering')
+    console.log(
+      '✅ GET /api/v1/projects - List projects with pagination and filtering'
+    )
     console.log('✅ GET /api/v1/projects/[id] - Get project details')
     console.log('✅ PUT /api/v1/projects/[id] - Update project')
     console.log('✅ DELETE /api/v1/projects/[id] - Delete project')
@@ -286,7 +354,6 @@ async function runTests() {
     console.log('✅ Comprehensive error handling')
     console.log('✅ Input validation with Zod schemas')
     console.log('✅ Unit and integration tests')
-    
   } catch (error) {
     console.error('❌ Test failed:', error)
     process.exit(1)

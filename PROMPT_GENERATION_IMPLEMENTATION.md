@@ -64,15 +64,16 @@ The service extracts five key visual elements from Chinese text:
 
 ```typescript
 interface VisualElements {
-  subject: string[]      // 主體：人物、物品、動物等
-  environment: string[]  // 環境：室內、戶外、場所等
-  camera: string[]       // 鏡頭：角度、距離、運動等
-  lighting: string[]     // 光影：時間、氣氛、光源等
-  mood: string[]         // 情緒：氛圍、感覺、色調等
+  subject: string[] // 主體：人物、物品、動物等
+  environment: string[] // 環境：室內、戶外、場所等
+  camera: string[] // 鏡頭：角度、距離、運動等
+  lighting: string[] // 光影：時間、氣氛、光源等
+  mood: string[] // 情緒：氛圍、感覺、色調等
 }
 ```
 
 **Process:**
+
 1. Send Chinese scene text to Gemini with structured prompt
 2. Parse JSON response with visual elements
 3. Fallback to keyword matching if LLM fails
@@ -86,6 +87,7 @@ Converts Chinese scenes to English visual prompts:
 **Output:** `beautiful girl walking in park, bright sunlight, cheerful mood, professional photography, high quality`
 
 **Process:**
+
 1. Use extracted visual elements as context
 2. Generate English prompt with Gemini
 3. Apply aspect ratio and template constraints
@@ -105,6 +107,7 @@ interface SafetyFilterResult {
 ```
 
 **Built-in Blocked Words:**
+
 - Violence: violence, weapon, gun, knife, blood, death, kill
 - Adult content: nude, naked, sexual, explicit, adult
 - Hate speech: hate, discrimination, racist, offensive
@@ -112,6 +115,7 @@ interface SafetyFilterResult {
 - Inappropriate: disturbing, scary, horror, nightmare
 
 **Process:**
+
 1. Check custom blocked words from user config
 2. Check built-in blocked words list
 3. Generate safe alternatives if violations found
@@ -122,6 +126,7 @@ interface SafetyFilterResult {
 Three predefined templates with different aesthetics:
 
 #### Classic Clean Template
+
 ```typescript
 {
   basePrompt: 'clean composition, soft lighting, professional photography',
@@ -132,6 +137,7 @@ Three predefined templates with different aesthetics:
 ```
 
 #### Dark Glass Template
+
 ```typescript
 {
   basePrompt: 'dark aesthetic, glass morphism, moody atmosphere',
@@ -142,6 +148,7 @@ Three predefined templates with different aesthetics:
 ```
 
 #### Vivid Gradient Template
+
 ```typescript
 {
   basePrompt: 'vibrant colors, gradient backgrounds, energetic mood',
@@ -160,6 +167,7 @@ Creates concise previews for UI display:
 **Output:** `beautiful • girl • walking • park • bright`
 
 **Algorithm:**
+
 1. Split prompt into words
 2. Filter out common words (the, and, with, etc.)
 3. Take first 5 meaningful words
@@ -172,6 +180,7 @@ Creates concise previews for UI display:
 Generate visual prompts for project scenes.
 
 **Request:**
+
 ```json
 {
   "scenes": [
@@ -193,6 +202,7 @@ Generate visual prompts for project scenes.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -221,6 +231,7 @@ Generate visual prompts for project scenes.
 Validate edited prompt for safety and appropriateness.
 
 **Request:**
+
 ```json
 {
   "originalPrompt": "original scene description",
@@ -229,6 +240,7 @@ Validate edited prompt for safety and appropriateness.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -246,6 +258,7 @@ Validate edited prompt for safety and appropriateness.
 Get prompt previews for all project scenes.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -275,7 +288,7 @@ enum PromptErrorType {
   LLM_API_ERROR = 'llm_api_error',
   SAFETY_VIOLATION = 'safety_violation',
   TEMPLATE_ERROR = 'template_error',
-  VALIDATION_ERROR = 'validation_error'
+  VALIDATION_ERROR = 'validation_error',
 }
 ```
 

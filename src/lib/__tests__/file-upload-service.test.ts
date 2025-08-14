@@ -54,7 +54,8 @@ describe('FileUploadService', () => {
     })
 
     it('should remove markdown formatting', () => {
-      const text = '# Header\n**Bold text** and *italic text*\n```code block```\n[Link](http://example.com)'
+      const text =
+        '# Header\n**Bold text** and *italic text*\n```code block```\n[Link](http://example.com)'
       const result = service.cleanAndNormalizeText(text)
 
       expect(result).not.toContain('#')
@@ -76,9 +77,10 @@ describe('FileUploadService', () => {
   describe('ruleBasedSegmentation', () => {
     it('should segment text into appropriate scenes', async () => {
       // Create longer paragraphs to ensure they get split
-      const text = 'This is the first paragraph. It contains some content that is long enough to be considered a proper scene. This should be sufficient content for the first scene.\n\nThis is the second paragraph. It has different content that is also long enough to warrant its own scene. This content should also be substantial.\n\nThis is the third paragraph with more text that should also be long enough to create its own scene. This ensures proper segmentation.'
+      const text =
+        'This is the first paragraph. It contains some content that is long enough to be considered a proper scene. This should be sufficient content for the first scene.\n\nThis is the second paragraph. It has different content that is also long enough to warrant its own scene. This content should also be substantial.\n\nThis is the third paragraph with more text that should also be long enough to create its own scene. This ensures proper segmentation.'
       const options = { auto_segment: true, use_llm_segment: false }
-      
+
       const scenes = await service.segmentText(text, options)
 
       expect(scenes.length).toBeGreaterThanOrEqual(1)
@@ -91,7 +93,7 @@ describe('FileUploadService', () => {
     it('should handle very short text', async () => {
       const text = 'Short text.'
       const options = { auto_segment: true, use_llm_segment: false }
-      
+
       const scenes = await service.segmentText(text, options)
 
       expect(scenes).toHaveLength(1)
@@ -101,9 +103,12 @@ describe('FileUploadService', () => {
 
     it('should split long paragraphs appropriately', async () => {
       // Create text with sentences that can be split properly
-      const longText = 'This is a very long sentence that contains a lot of content. '.repeat(10) // Creates a long text with proper sentence endings
+      const longText =
+        'This is a very long sentence that contains a lot of content. '.repeat(
+          10
+        ) // Creates a long text with proper sentence endings
       const options = { auto_segment: true, use_llm_segment: false }
-      
+
       const scenes = await service.segmentText(longText, options)
 
       expect(scenes.length).toBeGreaterThan(0)
@@ -133,18 +138,28 @@ describe('FileUploadService', () => {
     it('should validate content length correctly', () => {
       const maxLength = 50000
       expect(service.isValidContentLength('short text', maxLength)).toBe(true)
-      expect(service.isValidContentLength('a'.repeat(maxLength), maxLength)).toBe(true)
-      expect(service.isValidContentLength('a'.repeat(maxLength + 1), maxLength)).toBe(false)
+      expect(
+        service.isValidContentLength('a'.repeat(maxLength), maxLength)
+      ).toBe(true)
+      expect(
+        service.isValidContentLength('a'.repeat(maxLength + 1), maxLength)
+      ).toBe(false)
     })
   })
 
   describe('storage integration', () => {
     it('should store uploaded file', async () => {
-      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' })
+      const mockFile = new File(['test content'], 'test.txt', {
+        type: 'text/plain',
+      })
       const userId = 'user-123'
       const projectId = 'project-456'
 
-      const result = await service.storeUploadedFile(userId, projectId, mockFile)
+      const result = await service.storeUploadedFile(
+        userId,
+        projectId,
+        mockFile
+      )
 
       expect(result).toBe('r2://test-bucket/test-key')
     })
@@ -154,7 +169,12 @@ describe('FileUploadService', () => {
       const projectId = 'project-456'
       const data = { scenes: [{ index: 0, text: 'test' }] }
 
-      const result = await service.storeProcessedContent(userId, projectId, 'scenes', data)
+      const result = await service.storeProcessedContent(
+        userId,
+        projectId,
+        'scenes',
+        data
+      )
 
       expect(result).toBe('r2://test-bucket/json-key')
     })
@@ -164,7 +184,12 @@ describe('FileUploadService', () => {
       const projectId = 'project-456'
       const cleanedText = 'This is cleaned text.'
 
-      const result = await service.storeCleanedText(userId, projectId, cleanedText, 'original.txt')
+      const result = await service.storeCleanedText(
+        userId,
+        projectId,
+        cleanedText,
+        'original.txt'
+      )
 
       expect(result).toBe('r2://test-bucket/text-key')
     })

@@ -1,19 +1,19 @@
-import { 
-  GeminiClient, 
-  AspectRatio, 
-  VoiceType, 
+import {
+  GeminiClient,
+  AspectRatio,
+  VoiceType,
   TextGenerationOptions,
   ImageGenerationOptions,
   TTSOptions,
   GeminiError,
-  GeminiErrorType 
+  GeminiErrorType,
 } from './gemini-client'
-import { 
-  withRetry, 
-  withRetryAndFallback, 
-  ConcurrencyController, 
+import {
+  withRetry,
+  withRetryAndFallback,
+  ConcurrencyController,
   CircuitBreaker,
-  DEFAULT_RETRY_CONFIG 
+  DEFAULT_RETRY_CONFIG,
 } from './gemini-retry'
 
 export interface ScenePromptResult {
@@ -59,10 +59,10 @@ export class GeminiService {
    * Create service instance with BYO key support
    */
   static async create(userId?: string): Promise<GeminiService> {
-    const client = userId 
+    const client = userId
       ? await GeminiClient.createWithBYOKey(userId)
       : new GeminiClient()
-    
+
     return new GeminiService(client)
   }
 
@@ -71,18 +71,21 @@ export class GeminiService {
    */
   async generateScenePrompts(
     scenes: Array<{ index: number; text: string }>,
-    options: { 
+    options: {
       aspectRatio: AspectRatio
-      style?: string 
+      style?: string
     } = { aspectRatio: '9:16' }
   ): Promise<ScenePromptResult[]> {
     const results: ScenePromptResult[] = []
 
     // Process scenes with concurrency control
-    const promises = scenes.map(scene => 
+    const promises = scenes.map(scene =>
       this.concurrencyController.execute(async () => {
         try {
-          const prompt = await this.generateSingleScenePrompt(scene.text, options)
+          const prompt = await this.generateSingleScenePrompt(
+            scene.text,
+            options
+          )
           return {
             sceneIndex: scene.index,
             originalText: scene.text,
@@ -131,12 +134,13 @@ Scene text: "${sceneText}"
 Generate visual prompt:`
 
     return await withRetryAndFallback(
-      () => this.circuitBreaker.execute(() => 
-        this.client.generateText(systemPrompt, {
-          temperature: 0.7,
-          maxOutputTokens: 200,
-        })
-      ),
+      () =>
+        this.circuitBreaker.execute(() =>
+          this.client.generateText(systemPrompt, {
+            temperature: 0.7,
+            maxOutputTokens: 200,
+          })
+        ),
       () => Promise.resolve(this.getFallbackPrompt(sceneText)),
       DEFAULT_RETRY_CONFIG
     )
@@ -155,10 +159,12 @@ Generate visual prompt:`
       this.concurrencyController.execute(async () => {
         try {
           const imageUrl = await withRetryAndFallback(
-            () => this.circuitBreaker.execute(() =>
-              this.client.generateImage(prompt, options)
-            ),
-            () => Promise.resolve(this.getFallbackImageUrl(options.aspectRatio)),
+            () =>
+              this.circuitBreaker.execute(() =>
+                this.client.generateImage(prompt, options)
+              ),
+            () =>
+              Promise.resolve(this.getFallbackImageUrl(options.aspectRatio)),
             DEFAULT_RETRY_CONFIG
           )
 
@@ -200,9 +206,10 @@ Generate visual prompt:`
       this.concurrencyController.execute(async () => {
         try {
           const audioBuffer = await withRetryAndFallback(
-            () => this.circuitBreaker.execute(() =>
-              this.client.generateSpeech(text, options)
-            ),
+            () =>
+              this.circuitBreaker.execute(() =>
+                this.client.generateSpeech(text, options)
+              ),
             () => Promise.resolve(new ArrayBuffer(0)), // Empty audio as fallback
             DEFAULT_RETRY_CONFIG
           )
@@ -247,7 +254,9 @@ Generate visual prompt:`
       targetSceneLength?: number
       maxScenes?: number
     } = {}
-  ): Promise<Array<{ index: number; text: string; startChar: number; endChar: number }>> {
+  ): Promise<
+    Array<{ index: number; text: string; startChar: number; endChar: number }>
+  > {
     const { targetSceneLength = 200, maxScenes = 50 } = options
 
     const systemPrompt = `You are a text segmentation expert. Segment the following text into scenes for video generation.
@@ -266,18 +275,21 @@ Segmented scenes:`
 
     try {
       const response = await withRetry(
-        () => this.circuitBreaker.execute(() =>
-          this.client.generateText(systemPrompt, {
-            temperature: 0.3,
-            maxOutputTokens: 4000,
-          })
-        ),
+        () =>
+          this.circuitBreaker.execute(() =>
+            this.client.generateText(systemPrompt, {
+              temperature: 0.3,
+              maxOutputTokens: 4000,
+            })
+          ),
         DEFAULT_RETRY_CONFIG
       )
 
       // Parse JSON response
       const scenes = JSON.parse(response.trim())
-      return Array.isArray(scenes) ? scenes : this.fallbackSegmentation(text, targetSceneLength)
+      return Array.isArray(scenes)
+        ? scenes
+        : this.fallbackSegmentation(text, targetSceneLength)
     } catch (error) {
       console.warn('LLM segmentation failed, using rule-based fallback:', error)
       return this.fallbackSegmentation(text, targetSceneLength)
@@ -294,7 +306,7 @@ Segmented scenes:`
     concurrencyStatus: { active: number; queued: number }
   }> {
     const available = await this.client.checkAvailability()
-    
+
     const rateLimits = {
       text: this.client.getRateLimitStatus('TEXT'),
       image: this.client.getRateLimitStatus('IMAGE'),
@@ -315,9 +327,22 @@ Segmented scenes:`
   private getFallbackPrompt(sceneText: string): string {
     // Extract key nouns and adjectives for basic visual prompt
     const words = sceneText.toLowerCase().split(/\s+/)
-    const visualWords = words.filter(word => 
-      word.length > 3 && 
-      !['the', 'and', 'but', 'for', 'are', 'was', 'were', 'been', 'have', 'has', 'had'].includes(word)
+    const visualWords = words.filter(
+      word =>
+        word.length > 3 &&
+        ![
+          'the',
+          'and',
+          'but',
+          'for',
+          'are',
+          'was',
+          'were',
+          'been',
+          'have',
+          'has',
+          'had',
+        ].includes(word)
     )
 
     const prompt = visualWords.slice(0, 5).join(' ')
@@ -330,7 +355,7 @@ Segmented scenes:`
   private getFallbackImageUrl(aspectRatio: AspectRatio): string {
     const dimensions = {
       '9:16': '1080x1920',
-      '16:9': '1920x1080', 
+      '16:9': '1920x1080',
       '1:1': '1080x1080',
     }
 
@@ -342,12 +367,22 @@ Segmented scenes:`
    * Rule-based text segmentation fallback
    */
   private fallbackSegmentation(
-    text: string, 
+    text: string,
     targetLength: number
-  ): Array<{ index: number; text: string; startChar: number; endChar: number }> {
-    const scenes: Array<{ index: number; text: string; startChar: number; endChar: number }> = []
+  ): Array<{
+    index: number
+    text: string
+    startChar: number
+    endChar: number
+  }> {
+    const scenes: Array<{
+      index: number
+      text: string
+      startChar: number
+      endChar: number
+    }> = []
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0)
-    
+
     let currentScene = ''
     let sceneStartChar = 0
     let currentChar = 0
@@ -358,8 +393,11 @@ Segmented scenes:`
       if (!trimmedSentence) continue
 
       const sentenceWithPunctuation = trimmedSentence + '.'
-      
-      if (currentScene.length + sentenceWithPunctuation.length > targetLength && currentScene.length > 0) {
+
+      if (
+        currentScene.length + sentenceWithPunctuation.length > targetLength &&
+        currentScene.length > 0
+      ) {
         // Finish current scene
         scenes.push({
           index: sceneIndex++,

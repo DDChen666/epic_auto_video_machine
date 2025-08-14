@@ -8,7 +8,7 @@ jest.mock('../db', () => ({
   DatabaseService: {
     getUserScopedClient: jest.fn(),
   },
-  handlePrismaError: jest.fn((error) => error),
+  handlePrismaError: jest.fn(error => error),
 }))
 
 describe('ProjectService', () => {
@@ -33,7 +33,6 @@ describe('ProjectService', () => {
         delete: jest.fn(),
       },
     }
-
     ;(DatabaseService.getUserScopedClient as jest.Mock).mockReturnValue(mockDb)
     projectService = new ProjectService(authContext)
   })
@@ -315,9 +314,9 @@ describe('ProjectService', () => {
 
       mockDb.project.findUnique.mockResolvedValue(existingProject)
 
-      await expect(
-        projectService.deleteProject('proj_123')
-      ).rejects.toThrow('Cannot delete project with active jobs')
+      await expect(projectService.deleteProject('proj_123')).rejects.toThrow(
+        'Cannot delete project with active jobs'
+      )
     })
 
     it('should delete project successfully', async () => {
@@ -345,7 +344,10 @@ describe('ProjectService', () => {
         id: 'proj_123',
         config: {
           ...DEFAULT_PROJECT_CONFIG,
-          generation: { ...DEFAULT_PROJECT_CONFIG.generation, images_per_scene: 2 },
+          generation: {
+            ...DEFAULT_PROJECT_CONFIG.generation,
+            images_per_scene: 2,
+          },
         },
         scenes: [
           { text: 'Scene 1 with some text content' },

@@ -1,11 +1,11 @@
-import { DatabaseService, handlePrismaError } from './db'
-import type { 
-  ProjectConfig, 
-  ProjectStatus, 
-  Project, 
+import { DatabaseService, handlePrismaError, prisma } from './db'
+import type {
+  ProjectConfig,
+  ProjectStatus,
+  Project,
   Scene,
   CostEstimate,
-  AuthContext 
+  AuthContext,
 } from '@/types'
 
 export class ProjectService {
@@ -14,9 +14,9 @@ export class ProjectService {
 
   constructor(authContext?: AuthContext) {
     this.userId = authContext?.userId
-    this.db = authContext 
+    this.db = authContext
       ? DatabaseService.getUserScopedClient(authContext.userId)
-      : DatabaseService.getClient()
+      : prisma as any // Fallback to direct prisma client
   }
 
   /**
@@ -59,32 +59,36 @@ export class ProjectService {
       const project = await this.db.project.findUnique({
         where: { id: projectId },
         include: {
-          scenes: includeDetails ? {
-            orderBy: { index: 'asc' },
-            include: {
-              imageAsset: {
+          scenes: includeDetails
+            ? {
+                orderBy: { index: 'asc' },
+                include: {
+                  imageAsset: {
+                    select: {
+                      id: true,
+                      uri: true,
+                      metadata: true,
+                    },
+                  },
+                },
+              }
+            : false,
+          jobs: includeDetails
+            ? {
+                orderBy: { createdAt: 'desc' },
+                take: 5,
                 select: {
                   id: true,
-                  uri: true,
-                  metadata: true,
+                  status: true,
+                  costEstimate: true,
+                  costActual: true,
+                  startedAt: true,
+                  finishedAt: true,
+                  errorDetail: true,
+                  createdAt: true,
                 },
-              },
-            },
-          } : false,
-          jobs: includeDetails ? {
-            orderBy: { createdAt: 'desc' },
-            take: 5,
-            select: {
-              id: true,
-              status: true,
-              costEstimate: true,
-              costActual: true,
-              startedAt: true,
-              finishedAt: true,
-              errorDetail: true,
-              createdAt: true,
-            },
-          } : false,
+              }
+            : false,
           _count: {
             select: {
               scenes: true,
@@ -107,14 +111,16 @@ export class ProjectService {
   /**
    * List projects with filtering and pagination
    */
-  async listProjects(options: {
-    page?: number
-    limit?: number
-    status?: ProjectStatus
-    search?: string
-    sort?: 'created_at' | 'updated_at' | 'title'
-    order?: 'asc' | 'desc'
-  } = {}) {
+  async listProjects(
+    options: {
+      page?: number
+      limit?: number
+      status?: ProjectStatus
+      search?: string
+      sort?: 'created_at' | 'updated_at' | 'title'
+      order?: 'asc' | 'desc'
+    } = {}
+  ) {
     const {
       page = 1,
       limit = 20,
@@ -143,7 +149,7 @@ export class ProjectService {
 
       // Get total count and projects
       const [total, projects] = await Promise.all([
-        this.db.project.count({ where }),
+        prisma.project.count({ where: { ...where, userId: this.userId } }),
         this.db.project.findMany({
           where,
           orderBy,
@@ -183,7 +189,7 @@ export class ProjectService {
           limit,
           total,
           totalPages: Math.ceil(total / limit),
-          hasNext: (page * limit) < total,
+          hasNext: page * limit < total,
           hasPrev: page > 1,
         },
       }
@@ -216,11 +222,16 @@ export class ProjectService {
       }
 
       // Validate status transitions
-      if (updates.status && !this.isValidStatusTransition(
-        existingProject.status as ProjectStatus, 
-        updates.status
-      )) {
-        throw new Error(`Cannot transition from ${existingProject.status} to ${updates.status}`)
+      if (
+        updates.status &&
+        !this.isValidStatusTransition(
+          existingProject.status as ProjectStatus,
+          updates.status
+        )
+      ) {
+        throw new Error(
+          `Cannot transition from ${existingProject.status} to ${updates.status}`
+        )
       }
 
       // Merge config updates
@@ -232,7 +243,8 @@ export class ProjectService {
       // Build update data
       const updateData: any = {}
       if (updates.title !== undefined) updateData.title = updates.title
-      if (updates.description !== undefined) updateData.description = updates.description
+      if (updates.description !== undefined)
+        updateData.description = updates.description
       if (updates.status !== undefined) updateData.status = updates.status
       if (updates.config !== undefined) updateData.config = updatedConfig
 
@@ -264,8 +276,8 @@ export class ProjectService {
       // Check if project exists and has active jobs
       const existingProject = await this.db.project.findUnique({
         where: { id: projectId },
-        select: { 
-          id: true, 
+        select: {
+          id: true,
           status: true,
           jobs: {
             where: { status: { in: ['QUEUED', 'RUNNING'] } },
@@ -280,7 +292,9 @@ export class ProjectService {
 
       // Prevent deletion if there are active jobs
       if (existingProject.jobs.length > 0) {
-        throw new Error('Cannot delete project with active jobs. Please cancel or wait for jobs to complete.')
+        throw new Error(
+          'Cannot delete project with active jobs. Please cancel or wait for jobs to complete.'
+        )
       }
 
       // Delete project (cascade will handle related records)
@@ -297,7 +311,10 @@ export class ProjectService {
   /**
    * Update project scenes
    */
-  async updateProjectScenes(projectId: string, scenes: Array<{ index: number; text: string; prompt?: string }>) {
+  async updateProjectScenes(
+    projectId: string,
+    scenes: Array<{ index: number; text: string; prompt?: string }>
+  ) {
     try {
       // First, delete existing scenes for this project
       await this.db.scene.deleteMany({
@@ -325,11 +342,14 @@ export class ProjectService {
   /**
    * Update scene prompts from prompt generation results
    */
-  async updateScenePrompts(projectId: string, promptResults: Array<{
-    sceneIndex: number
-    visualPrompt: string
-    success: boolean
-  }>) {
+  async updateScenePrompts(
+    projectId: string,
+    promptResults: Array<{
+      sceneIndex: number
+      visualPrompt: string
+      success: boolean
+    }>
+  ) {
     try {
       // Update each scene with its generated prompt
       const updatePromises = promptResults.map(result => {
@@ -360,7 +380,7 @@ export class ProjectService {
   async getProjectWithScenes(projectId: string, userId: string) {
     try {
       const project = await this.db.project.findUnique({
-        where: { 
+        where: {
           id: projectId,
           userId: userId,
         },
@@ -415,7 +435,10 @@ export class ProjectService {
 
       const config = project.config as ProjectConfig
       const sceneCount = project.scenes.length
-      const totalCharacters = project.scenes.reduce((sum, scene) => sum + scene.text.length, 0)
+      const totalCharacters = project.scenes.reduce(
+        (sum, scene) => sum + scene.text.length,
+        0
+      )
 
       // Cost calculation (these would be real pricing in production)
       const PRICING = {
@@ -455,7 +478,10 @@ export class ProjectService {
   /**
    * Validate project status transition
    */
-  private isValidStatusTransition(currentStatus: ProjectStatus, newStatus: ProjectStatus): boolean {
+  private isValidStatusTransition(
+    currentStatus: ProjectStatus,
+    newStatus: ProjectStatus
+  ): boolean {
     const validTransitions: Record<ProjectStatus, ProjectStatus[]> = {
       DRAFT: ['READY', 'FAILED'],
       READY: ['PROCESSING', 'DRAFT'],
@@ -470,7 +496,10 @@ export class ProjectService {
   /**
    * Merge project configuration updates
    */
-  private mergeProjectConfig(existing: ProjectConfig, updates: Partial<ProjectConfig>): ProjectConfig {
+  private mergeProjectConfig(
+    existing: ProjectConfig,
+    updates: Partial<ProjectConfig>
+  ): ProjectConfig {
     const merged = { ...existing }
 
     if (updates.aspect_ratio) {
@@ -515,35 +544,39 @@ export class ProjectService {
     if (!includeDetails) {
       return {
         ...base,
-        latest_job: project.jobs?.[0] ? {
-          id: project.jobs[0].id,
-          status: project.jobs[0].status,
-          created_at: project.jobs[0].createdAt.toISOString(),
-        } : null,
+        latest_job: project.jobs?.[0]
+          ? {
+              id: project.jobs[0].id,
+              status: project.jobs[0].status,
+              created_at: project.jobs[0].createdAt.toISOString(),
+            }
+          : null,
       }
     }
 
     return {
       ...base,
-      scenes: project.scenes?.map((scene: any) => ({
-        id: scene.id,
-        index: scene.index,
-        text: scene.text,
-        prompt: scene.prompt,
-        image_asset: scene.imageAsset,
-        created_at: scene.createdAt.toISOString(),
-        updated_at: scene.updatedAt.toISOString(),
-      })) || [],
-      jobs: project.jobs?.map((job: any) => ({
-        id: job.id,
-        status: job.status,
-        cost_estimate: job.costEstimate,
-        cost_actual: job.costActual,
-        started_at: job.startedAt?.toISOString(),
-        finished_at: job.finishedAt?.toISOString(),
-        error_detail: job.errorDetail,
-        created_at: job.createdAt.toISOString(),
-      })) || [],
+      scenes:
+        project.scenes?.map((scene: any) => ({
+          id: scene.id,
+          index: scene.index,
+          text: scene.text,
+          prompt: scene.prompt,
+          image_asset: scene.imageAsset,
+          created_at: scene.createdAt.toISOString(),
+          updated_at: scene.updatedAt.toISOString(),
+        })) || [],
+      jobs:
+        project.jobs?.map((job: any) => ({
+          id: job.id,
+          status: job.status,
+          cost_estimate: job.costEstimate,
+          cost_actual: job.costActual,
+          started_at: job.startedAt?.toISOString(),
+          finished_at: job.finishedAt?.toISOString(),
+          error_detail: job.errorDetail,
+          created_at: job.createdAt.toISOString(),
+        })) || [],
     }
   }
 }

@@ -37,14 +37,16 @@ export const GET = withApiHandler(
         return successResponse(estimate)
       } catch (error) {
         console.error('Error estimating project cost:', error)
-        
+
         if (error instanceof Error && error.message === 'Project not found') {
           return notFoundResponse('Project')
         }
 
         return errorResponse(
           ERROR_CODES.DATABASE_ERROR,
-          error instanceof Error ? error.message : 'Failed to estimate project cost',
+          error instanceof Error
+            ? error.message
+            : 'Failed to estimate project cost',
           HTTP_STATUS.INTERNAL_SERVER_ERROR
         )
       }

@@ -1,5 +1,14 @@
-import { GeminiClient, GEMINI_MODELS, FREE_TIER_LIMITS, GeminiErrorType } from '../gemini-client'
-import { withRetry, calculateDelay, DEFAULT_RETRY_CONFIG } from '../gemini-retry'
+import {
+  GeminiClient,
+  GEMINI_MODELS,
+  FREE_TIER_LIMITS,
+  GeminiErrorType,
+} from '../gemini-client'
+import {
+  withRetry,
+  calculateDelay,
+  DEFAULT_RETRY_CONFIG,
+} from '../gemini-retry'
 import { GeminiService } from '../gemini-service'
 
 // Mock the Google Generative AI SDK
@@ -69,11 +78,13 @@ describe('GeminiClient', () => {
   describe('error handling', () => {
     it('should classify API key errors correctly', async () => {
       const mockModel = {
-        generateContent: jest.fn().mockRejectedValue(new Error('Invalid API key'))
+        generateContent: jest
+          .fn()
+          .mockRejectedValue(new Error('Invalid API key')),
       }
-      
+
       const mockGenAI = {
-        getGenerativeModel: jest.fn().mockReturnValue(mockModel)
+        getGenerativeModel: jest.fn().mockReturnValue(mockModel),
       }
 
       // Mock the client's genAI instance
@@ -90,11 +101,13 @@ describe('GeminiClient', () => {
 
     it('should classify rate limit errors correctly', async () => {
       const mockModel = {
-        generateContent: jest.fn().mockRejectedValue(new Error('429 rate limit'))
+        generateContent: jest
+          .fn()
+          .mockRejectedValue(new Error('429 rate limit')),
       }
-      
+
       const mockGenAI = {
-        getGenerativeModel: jest.fn().mockReturnValue(mockModel)
+        getGenerativeModel: jest.fn().mockReturnValue(mockModel),
       }
 
       ;(client as any).genAI = mockGenAI
@@ -114,24 +127,24 @@ describe('Retry Mechanism', () => {
   describe('calculateDelay', () => {
     it('should calculate exponential backoff correctly', () => {
       const config = { ...DEFAULT_RETRY_CONFIG, jitter: false }
-      
+
       expect(calculateDelay(1, config)).toBe(1000) // 1 * 1000
-      expect(calculateDelay(2, config)).toBe(2000) // 2 * 1000  
+      expect(calculateDelay(2, config)).toBe(2000) // 2 * 1000
       expect(calculateDelay(3, config)).toBe(4000) // 4 * 1000
     })
 
     it('should respect max delay limit', () => {
       const config = { ...DEFAULT_RETRY_CONFIG, maxDelay: 5000, jitter: false }
-      
+
       expect(calculateDelay(10, config)).toBe(5000)
     })
 
     it('should add jitter when enabled', () => {
       const config = { ...DEFAULT_RETRY_CONFIG, jitter: true }
-      
+
       const delay1 = calculateDelay(1, config)
       const delay2 = calculateDelay(1, config)
-      
+
       // With jitter, delays should be different
       expect(delay1).not.toBe(delay2)
       expect(delay1).toBeGreaterThan(900) // Should be around 1000 ± 10%
@@ -142,9 +155,9 @@ describe('Retry Mechanism', () => {
   describe('withRetry', () => {
     it('should succeed on first attempt', async () => {
       const operation = jest.fn().mockResolvedValue('success')
-      
+
       const result = await withRetry(operation)
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -154,15 +167,16 @@ describe('Retry Mechanism', () => {
       retryableError.type = GeminiErrorType.SERVICE_ERROR
       retryableError.retryable = true
 
-      const operation = jest.fn()
+      const operation = jest
+        .fn()
         .mockRejectedValueOnce(retryableError)
         .mockRejectedValueOnce(retryableError)
         .mockResolvedValue('success')
 
-      const result = await withRetry(operation, { 
-        ...DEFAULT_RETRY_CONFIG, 
+      const result = await withRetry(operation, {
+        ...DEFAULT_RETRY_CONFIG,
         baseDelay: 10, // Speed up test
-        maxAttempts: 3 
+        maxAttempts: 3,
       })
 
       expect(result).toBe('success')
@@ -200,7 +214,9 @@ describe('GeminiService', () => {
 
   describe('generateScenePrompts', () => {
     it('should generate prompts for multiple scenes', async () => {
-      mockClient.generateText.mockResolvedValue('A cinematic scene with beautiful lighting')
+      mockClient.generateText.mockResolvedValue(
+        'A cinematic scene with beautiful lighting'
+      )
 
       const scenes = [
         { index: 0, text: 'A person walking in the park' },
@@ -211,7 +227,9 @@ describe('GeminiService', () => {
 
       expect(results).toHaveLength(2)
       expect(results[0].success).toBe(true)
-      expect(results[0].visualPrompt).toBe('A cinematic scene with beautiful lighting')
+      expect(results[0].visualPrompt).toBe(
+        'A cinematic scene with beautiful lighting'
+      )
       expect(results[1].success).toBe(true)
       expect(mockClient.generateText).toHaveBeenCalledTimes(2)
     })
@@ -220,16 +238,14 @@ describe('GeminiService', () => {
       // Mock the circuit breaker to throw an error that will trigger fallback
       const circuitBreakerError = new Error('API error') as any
       circuitBreakerError.retryable = false
-      
+
       // Mock the service's circuit breaker execute method
       const mockCircuitBreaker = {
-        execute: jest.fn().mockRejectedValue(circuitBreakerError)
+        execute: jest.fn().mockRejectedValue(circuitBreakerError),
       }
       ;(service as any).circuitBreaker = mockCircuitBreaker
 
-      const scenes = [
-        { index: 0, text: 'A person walking in the park' },
-      ]
+      const scenes = [{ index: 0, text: 'A person walking in the park' }]
 
       const results = await service.generateScenePrompts(scenes)
 
@@ -248,7 +264,9 @@ describe('GeminiService', () => {
 
       mockClient.generateText.mockResolvedValue(JSON.stringify(mockSegments))
 
-      const result = await service.segmentTextIntoScenes('A long story text here...')
+      const result = await service.segmentTextIntoScenes(
+        'A long story text here...'
+      )
 
       expect(result).toEqual(mockSegments)
       expect(mockClient.generateText).toHaveBeenCalledTimes(1)

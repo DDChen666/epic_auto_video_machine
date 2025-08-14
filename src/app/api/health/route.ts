@@ -28,10 +28,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
 
   const allHealthy = checks.api && checks.database && checks.databaseConnection
 
-  return healthCheckResponse(
-    allHealthy ? 'healthy' : 'unhealthy',
-    checks
-  )
+  return healthCheckResponse(allHealthy ? 'healthy' : 'unhealthy', checks)
 })
 
 /**

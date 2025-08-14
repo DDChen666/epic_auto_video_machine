@@ -92,8 +92,12 @@ describe('/api/v1/projects/[id]/prompts', () => {
     }
 
     // Mock implementations
-    ;(getServerSession as jest.MockedFunction<any>).mockResolvedValue(mockSession)
-    ;(PromptGenerationService.create as jest.MockedFunction<any>).mockResolvedValue(mockPromptService)
+    ;(getServerSession as jest.MockedFunction<any>).mockResolvedValue(
+      mockSession
+    )
+    ;(
+      PromptGenerationService.create as jest.MockedFunction<any>
+    ).mockResolvedValue(mockPromptService)
     ;(ProjectService as any).mockImplementation(() => mockProjectService)
 
     // Reset mocks
@@ -107,7 +111,8 @@ describe('/api/v1/projects/[id]/prompts', () => {
         {
           sceneIndex: 1,
           originalText: mockScenes[0].text,
-          visualPrompt: 'beautiful girl walking in park, professional photography',
+          visualPrompt:
+            'beautiful girl walking in park, professional photography',
           visualElements: {
             subject: ['女孩'],
             environment: ['公園'],
@@ -135,12 +140,15 @@ describe('/api/v1/projects/[id]/prompts', () => {
       ])
       mockProjectService.updateScenePrompts.mockResolvedValue(true)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({
-          scenes: mockScenes,
-        }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            scenes: mockScenes,
+          }),
+        }
+      )
 
       const response = await POST(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -148,7 +156,9 @@ describe('/api/v1/projects/[id]/prompts', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data).toHaveLength(2)
-      expect(data.data[0].visualPrompt).toContain('beautiful girl walking in park')
+      expect(data.data[0].visualPrompt).toContain(
+        'beautiful girl walking in park'
+      )
       expect(data.data[1].visualPrompt).toContain('city street at night')
       expect(mockProjectService.updateScenePrompts).toHaveBeenCalledWith(
         'project-123',
@@ -163,20 +173,23 @@ describe('/api/v1/projects/[id]/prompts', () => {
       mockProjectService.getProject.mockResolvedValue(mockProject)
       mockPromptService.generateScenePrompts.mockResolvedValue([])
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({
-          scenes: mockScenes,
-          config: {
-            aspect_ratio: '16:9',
-            template: 'dark',
-            safety: {
-              content_policy: 'strict',
-              blocked_words: ['custom_word'],
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            scenes: mockScenes,
+            config: {
+              aspect_ratio: '16:9',
+              template: 'dark',
+              safety: {
+                content_policy: 'strict',
+                blocked_words: ['custom_word'],
+              },
             },
-          },
-        }),
-      })
+          }),
+        }
+      )
 
       await POST(request, { params: { id: 'project-123' } })
 
@@ -194,12 +207,15 @@ describe('/api/v1/projects/[id]/prompts', () => {
     })
 
     it('should return 401 for unauthenticated requests', async () => {
-      ;(getServerSession as Mock).mockResolvedValue(null)
+      ;(getServerSession as jest.MockedFunction<any>).mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: mockScenes }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: mockScenes }),
+        }
+      )
 
       const response = await POST(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -212,10 +228,13 @@ describe('/api/v1/projects/[id]/prompts', () => {
     it('should return 404 for non-existent projects', async () => {
       mockProjectService.getProject.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: mockScenes }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: mockScenes }),
+        }
+      )
 
       const response = await POST(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -228,10 +247,13 @@ describe('/api/v1/projects/[id]/prompts', () => {
     it('should return 400 for invalid scenes data', async () => {
       mockProjectService.getProject.mockResolvedValue(mockProject)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: [] }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: [] }),
+        }
+      )
 
       const response = await POST(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -243,12 +265,17 @@ describe('/api/v1/projects/[id]/prompts', () => {
 
     it('should handle prompt generation service errors', async () => {
       mockProjectService.getProject.mockResolvedValue(mockProject)
-      mockPromptService.generateScenePrompts.mockRejectedValue(new Error('Service error'))
+      mockPromptService.generateScenePrompts.mockRejectedValue(
+        new Error('Service error')
+      )
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: mockScenes }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: mockScenes }),
+        }
+      )
 
       const response = await POST(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -271,13 +298,16 @@ describe('/api/v1/projects/[id]/prompts', () => {
         suggestions: [],
       })
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'PUT',
-        body: JSON.stringify({
-          originalPrompt: 'original prompt',
-          editedPrompt: 'edited prompt with improvements',
-        }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            originalPrompt: 'original prompt',
+            editedPrompt: 'edited prompt with improvements',
+          }),
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -300,13 +330,16 @@ describe('/api/v1/projects/[id]/prompts', () => {
         suggestions: ['suggestion 1', 'suggestion 2'],
       })
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'PUT',
-        body: JSON.stringify({
-          originalPrompt: 'original prompt',
-          editedPrompt: 'prompt with violence',
-        }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            originalPrompt: 'original prompt',
+            editedPrompt: 'prompt with violence',
+          }),
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -314,7 +347,9 @@ describe('/api/v1/projects/[id]/prompts', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data.isValid).toBe(false)
-      expect(data.data.safetyViolations).toContain('Inappropriate content: violence')
+      expect(data.data.safetyViolations).toContain(
+        'Inappropriate content: violence'
+      )
       expect(data.data.filteredPrompt).toBe('safe alternative prompt')
       expect(data.data.suggestions).toHaveLength(2)
     })
@@ -322,13 +357,16 @@ describe('/api/v1/projects/[id]/prompts', () => {
     it('should return 400 for missing prompt data', async () => {
       mockProjectService.getProject.mockResolvedValue(mockProject)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'PUT',
-        body: JSON.stringify({
-          originalPrompt: 'original',
-          // Missing editedPrompt
-        }),
-      })
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            originalPrompt: 'original',
+            // Missing editedPrompt
+          }),
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -348,7 +386,8 @@ describe('/api/v1/projects/[id]/prompts', () => {
             id: 'scene-1',
             index: 1,
             text: 'Scene 1 text',
-            prompt: 'beautiful girl walking in park, professional photography, high quality',
+            prompt:
+              'beautiful girl walking in park, professional photography, high quality',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -356,19 +395,24 @@ describe('/api/v1/projects/[id]/prompts', () => {
             id: 'scene-2',
             index: 2,
             text: 'Scene 2 text',
-            prompt: 'city street at night, neon lights, cinematic lighting, urban atmosphere',
+            prompt:
+              'city street at night, neon lights, cinematic lighting, urban atmosphere',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         ],
       }
 
-      mockProjectService.getProjectWithScenes.mockResolvedValue(projectWithScenes)
+      mockProjectService.getProjectWithScenes.mockResolvedValue(
+        projectWithScenes
+      )
       mockPromptService.generatePromptPreview
         .mockReturnValueOnce('beautiful • girl • walking • park • professional')
         .mockReturnValueOnce('city • street • night • neon • lights')
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts/preview')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts/preview'
+      )
 
       const response = await GET(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -379,13 +423,15 @@ describe('/api/v1/projects/[id]/prompts', () => {
       expect(data.data[0]).toMatchObject({
         sceneIndex: 1,
         preview: 'beautiful • girl • walking • park • professional',
-        fullPrompt: 'beautiful girl walking in park, professional photography, high quality',
+        fullPrompt:
+          'beautiful girl walking in park, professional photography, high quality',
         safetyStatus: 'safe',
       })
       expect(data.data[1]).toMatchObject({
         sceneIndex: 2,
         preview: 'city • street • night • neon • lights',
-        fullPrompt: 'city street at night, neon lights, cinematic lighting, urban atmosphere',
+        fullPrompt:
+          'city street at night, neon lights, cinematic lighting, urban atmosphere',
         safetyStatus: 'safe',
       })
     })
@@ -405,9 +451,13 @@ describe('/api/v1/projects/[id]/prompts', () => {
         ],
       }
 
-      mockProjectService.getProjectWithScenes.mockResolvedValue(projectWithoutPrompts)
+      mockProjectService.getProjectWithScenes.mockResolvedValue(
+        projectWithoutPrompts
+      )
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts/preview')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts/preview'
+      )
 
       const response = await GET(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -420,7 +470,9 @@ describe('/api/v1/projects/[id]/prompts', () => {
     it('should return 404 for non-existent projects', async () => {
       mockProjectService.getProjectWithScenes.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost/api/v1/projects/project-123/prompts/preview')
+      const request = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts/preview'
+      )
 
       const response = await GET(request, { params: { id: 'project-123' } })
       const data = await response.json()
@@ -435,20 +487,28 @@ describe('/api/v1/projects/[id]/prompts', () => {
     it('should require authentication for all endpoints', async () => {
       ;(getServerSession as jest.MockedFunction<any>).mockResolvedValue(null)
 
-      const postRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: mockScenes }),
-      })
+      const postRequest = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: mockScenes }),
+        }
+      )
 
-      const putRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'PUT',
-        body: JSON.stringify({
-          originalPrompt: 'original',
-          editedPrompt: 'edited',
-        }),
-      })
+      const putRequest = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            originalPrompt: 'original',
+            editedPrompt: 'edited',
+          }),
+        }
+      )
 
-      const getRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts/preview')
+      const getRequest = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts/preview'
+      )
 
       const [postResponse, putResponse, getResponse] = await Promise.all([
         POST(postRequest, { params: { id: 'project-123' } }),
@@ -465,12 +525,17 @@ describe('/api/v1/projects/[id]/prompts', () => {
       mockProjectService.getProject.mockResolvedValue(null)
       mockProjectService.getProjectWithScenes.mockResolvedValue(null)
 
-      const postRequest = new NextRequest('http://localhost/api/v1/projects/project-123/prompts', {
-        method: 'POST',
-        body: JSON.stringify({ scenes: mockScenes }),
-      })
+      const postRequest = new NextRequest(
+        'http://localhost/api/v1/projects/project-123/prompts',
+        {
+          method: 'POST',
+          body: JSON.stringify({ scenes: mockScenes }),
+        }
+      )
 
-      const response = await POST(postRequest, { params: { id: 'project-123' } })
+      const response = await POST(postRequest, {
+        params: { id: 'project-123' },
+      })
 
       expect(response.status).toBe(404)
       expect(mockProjectService.getProject).toHaveBeenCalledWith('project-123')

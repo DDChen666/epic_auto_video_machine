@@ -22,10 +22,10 @@ export class GeminiKeyManager {
   static async validateApiKey(apiKey: string): Promise<ApiKeyValidationResult> {
     try {
       const testClient = new GeminiClient({ apiKey })
-      
+
       // Test connectivity with a minimal request
       const isAvailable = await testClient.checkAvailability()
-      
+
       if (!isAvailable) {
         return {
           valid: false,
@@ -65,7 +65,7 @@ export class GeminiKeyManager {
     try {
       // First validate the key
       const validation = await this.validateApiKey(apiKey)
-      
+
       if (!validation.valid) {
         return {
           success: false,
@@ -107,14 +107,14 @@ export class GeminiKeyManager {
   }> {
     try {
       const apiKey = await UserService.getBYOApiKey(userId, 'gemini')
-      
+
       if (!apiKey) {
         return { hasBYOKey: false }
       }
 
       // Validate the stored key
       const validation = await this.validateApiKey(apiKey)
-      
+
       return {
         hasBYOKey: true,
         keyValid: validation.valid,
@@ -139,18 +139,20 @@ export class GeminiKeyManager {
   }> {
     try {
       const apiKey = await UserService.getBYOApiKey(userId, 'gemini')
-      
+
       if (apiKey) {
         // Validate BYO key before using
         const validation = await this.validateApiKey(apiKey)
-        
+
         if (validation.valid) {
           return {
             client: new GeminiClient({ apiKey, userId }),
             usingBYOKey: true,
           }
         } else {
-          console.warn(`Invalid BYO key for user ${userId}, falling back to platform key`)
+          console.warn(
+            `Invalid BYO key for user ${userId}, falling back to platform key`
+          )
         }
       }
 
@@ -161,7 +163,7 @@ export class GeminiKeyManager {
       }
     } catch (error) {
       console.error('Error creating Gemini client for user:', error)
-      
+
       // Final fallback to platform key
       return {
         client: new GeminiClient({ userId }),
@@ -189,7 +191,7 @@ export class GeminiKeyManager {
     }
   }> {
     const { client } = await this.createClientForUser(userId)
-    
+
     const textStatus = client.getRateLimitStatus('TEXT')
     const imageStatus = client.getRateLimitStatus('IMAGE')
     const ttsStatus = client.getRateLimitStatus('TTS')
@@ -212,7 +214,10 @@ export class GeminiKeyManager {
       },
     }
 
-    const sufficient = details.text.sufficient && details.image.sufficient && details.tts.sufficient
+    const sufficient =
+      details.text.sufficient &&
+      details.image.sufficient &&
+      details.tts.sufficient
 
     return { sufficient, details }
   }
@@ -288,12 +293,12 @@ export class GeminiKeyManager {
       ttsPerCharacter: 0.000008, // $0.000008 per character
     }
 
-    const platformCost = 
+    const platformCost =
       operation.textTokens * platformRates.textPerToken +
       operation.imageGenerations * platformRates.imagePerGeneration +
       operation.ttsCharacters * platformRates.ttsPerCharacter
 
-    const byoCost = 
+    const byoCost =
       operation.textTokens * byoRates.textPerToken +
       operation.imageGenerations * byoRates.imagePerGeneration +
       operation.ttsCharacters * byoRates.ttsPerCharacter

@@ -56,7 +56,7 @@ export class SceneSegmentationService {
     config: Partial<SegmentationConfig> = {}
   ) {
     this.config = { ...DEFAULT_CONFIG, ...config }
-    
+
     // Initialize Gemini client if LLM segmentation is enabled
     if (this.config.use_llm && authContext) {
       this.initializeGeminiClient(authContext.userId)
@@ -70,7 +70,10 @@ export class SceneSegmentationService {
     try {
       this.geminiClient = await GeminiClient.createWithBYOKey(userId)
     } catch (error) {
-      console.warn('Failed to initialize Gemini client, falling back to rule-based segmentation:', error)
+      console.warn(
+        'Failed to initialize Gemini client, falling back to rule-based segmentation:',
+        error
+      )
       this.config.use_llm = false
     }
   }
@@ -83,10 +86,10 @@ export class SceneSegmentationService {
     options: SegmentationOptions = {}
   ): Promise<SegmentationResult> {
     const startTime = Date.now()
-    
+
     // Merge configuration
     const config = { ...this.config, ...options.config }
-    
+
     // Initialize Gemini client if needed and not already initialized
     if (config.use_llm && !this.geminiClient && options.user_id) {
       await this.initializeGeminiClient(options.user_id)
@@ -94,7 +97,7 @@ export class SceneSegmentationService {
 
     // Normalize Chinese text
     const normalizedText = this.normalizeChineseText(text)
-    
+
     let scenes: SceneData[]
     let method: 'rule_based' | 'llm_assisted'
 
@@ -103,7 +106,10 @@ export class SceneSegmentationService {
         scenes = await this.llmAssistedSegmentation(normalizedText, config)
         method = 'llm_assisted'
       } catch (error) {
-        console.warn('LLM segmentation failed, falling back to rule-based:', error)
+        console.warn(
+          'LLM segmentation failed, falling back to rule-based:',
+          error
+        )
         scenes = this.ruleBasedSegmentation(normalizedText, config)
         method = 'rule_based'
       }
@@ -120,7 +126,8 @@ export class SceneSegmentationService {
         original_length: text.length,
         scene_count: scenes.length,
         average_scene_length: Math.round(
-          scenes.reduce((sum, scene) => sum + scene.text.length, 0) / scenes.length
+          scenes.reduce((sum, scene) => sum + scene.text.length, 0) /
+            scenes.length
         ),
         segmentation_method: method,
         processing_time: processingTime,
@@ -136,9 +143,9 @@ export class SceneSegmentationService {
     config: SegmentationConfig
   ): SceneData[] {
     const scenes: SceneData[] = []
-    
+
     // Split by paragraphs first if preserve_paragraphs is enabled
-    const paragraphs = config.preserve_paragraphs 
+    const paragraphs = config.preserve_paragraphs
       ? text.split(/\n\s*\n/).filter(p => p.trim().length > 0)
       : [text]
 
@@ -147,9 +154,9 @@ export class SceneSegmentationService {
     for (const paragraph of paragraphs) {
       const trimmedParagraph = paragraph.trim()
       if (trimmedParagraph.length === 0) continue
-      
+
       const paragraphScenes = this.segmentParagraph(trimmedParagraph, config)
-      
+
       for (const sceneText of paragraphScenes) {
         const trimmedSceneText = sceneText.trim()
         if (trimmedSceneText.length > 0) {
@@ -189,16 +196,17 @@ export class SceneSegmentationService {
 
     const scenes: string[] = []
     let currentScene = ''
-    
+
     // Split by sentences using Chinese punctuation
     const sentences = this.splitIntoSentences(paragraph)
-    
+
     for (const sentence of sentences) {
       const trimmedSentence = sentence.trim()
       if (!trimmedSentence) continue
-      
-      const potentialScene = currentScene + (currentScene ? ' ' : '') + trimmedSentence
-      
+
+      const potentialScene =
+        currentScene + (currentScene ? ' ' : '') + trimmedSentence
+
       if (potentialScene.length <= config.max_length) {
         currentScene = potentialScene
       } else {
@@ -209,13 +217,16 @@ export class SceneSegmentationService {
           currentScene = trimmedSentence
         } else if (trimmedSentence.length > config.max_length) {
           // Sentence itself is too long, need to split it
-          const splitSentence = this.splitLongSentence(trimmedSentence, config.max_length)
+          const splitSentence = this.splitLongSentence(
+            trimmedSentence,
+            config.max_length
+          )
           if (currentScene) {
             scenes.push(currentScene + ' ' + splitSentence[0])
           } else {
             scenes.push(splitSentence[0])
           }
-          
+
           // Add remaining parts as separate scenes
           for (let i = 1; i < splitSentence.length; i++) {
             scenes.push(splitSentence[i])
@@ -227,7 +238,7 @@ export class SceneSegmentationService {
         }
       }
     }
-    
+
     // Add the last scene if it exists
     if (currentScene.trim().length > 0) {
       scenes.push(currentScene)
@@ -248,13 +259,13 @@ export class SceneSegmentationService {
     // Chinese sentence endings: 。！？；
     const sentencePattern = /([^。！？；]*[。！？；])/g
     const sentences = text.match(sentencePattern) || []
-    
+
     // Handle remaining text that doesn't end with punctuation
     const lastIndex = sentences.join('').length
     if (lastIndex < text.length) {
       sentences.push(text.substring(lastIndex))
     }
-    
+
     return sentences.filter(s => s.trim().length > 0)
   }
 
@@ -263,21 +274,21 @@ export class SceneSegmentationService {
    */
   private splitLongSentence(sentence: string, maxLength: number): string[] {
     const parts: string[] = []
-    
+
     // Try to split by commas first
     const commaParts = sentence.split(/[，,]/)
     let currentPart = ''
-    
+
     for (const part of commaParts) {
       const potentialPart = currentPart + (currentPart ? '，' : '') + part
-      
+
       if (potentialPart.length <= maxLength) {
         currentPart = potentialPart
       } else {
         if (currentPart) {
           parts.push(currentPart)
         }
-        
+
         // If single part is still too long, split by length
         if (part.length > maxLength) {
           const lengthParts = this.splitByLength(part, maxLength)
@@ -288,11 +299,11 @@ export class SceneSegmentationService {
         }
       }
     }
-    
+
     if (currentPart) {
       parts.push(currentPart)
     }
-    
+
     return parts
   }
 
@@ -302,10 +313,10 @@ export class SceneSegmentationService {
   private splitByLength(text: string, maxLength: number): string[] {
     const parts: string[] = []
     let currentPos = 0
-    
+
     while (currentPos < text.length) {
       let endPos = Math.min(currentPos + maxLength, text.length)
-      
+
       // Try to find a good break point (space, punctuation)
       if (endPos < text.length) {
         const breakChars = /[\s，。！？；、]/
@@ -316,11 +327,11 @@ export class SceneSegmentationService {
           }
         }
       }
-      
+
       parts.push(text.substring(currentPos, endPos).trim())
       currentPos = endPos
     }
-    
+
     return parts.filter(part => part.length > 0)
   }
 
@@ -336,7 +347,7 @@ export class SceneSegmentationService {
     }
 
     const prompt = this.buildSegmentationPrompt(text, config)
-    
+
     try {
       const response = await this.geminiClient.generateText(prompt, {
         temperature: 0.3, // Lower temperature for more consistent results
@@ -390,16 +401,18 @@ ${text}
         .trim()
 
       const parsed = JSON.parse(cleanResponse)
-      
+
       if (!parsed.scenes || !Array.isArray(parsed.scenes)) {
         throw new Error('Invalid response format: missing scenes array')
       }
 
-      return parsed.scenes.map((scene: any, index: number) => ({
-        id: `scene_${index}`,
-        index: scene.index ?? index,
-        text: scene.text?.trim() || '',
-      })).filter((scene: SceneData) => scene.text.length > 0)
+      return parsed.scenes
+        .map((scene: any, index: number) => ({
+          id: `scene_${index}`,
+          index: scene.index ?? index,
+          text: scene.text?.trim() || '',
+        }))
+        .filter((scene: SceneData) => scene.text.length > 0)
     } catch (error) {
       console.error('Failed to parse LLM segmentation response:', error)
       throw new Error('Failed to parse segmentation response')
@@ -410,29 +423,35 @@ ${text}
    * Normalize Chinese text (full-width/half-width, punctuation)
    */
   private normalizeChineseText(text: string): string {
-    return text
-      // Convert full-width numbers and letters to half-width
-      .replace(/[０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xFEE0))
-      .replace(/[Ａ-Ｚａ-ｚ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xFEE0))
-      
-      // Normalize punctuation
-      .replace(/，/g, '，') // Ensure Chinese comma
-      .replace(/。/g, '。') // Ensure Chinese period
-      .replace(/！/g, '！') // Ensure Chinese exclamation
-      .replace(/？/g, '？') // Ensure Chinese question mark
-      .replace(/；/g, '；') // Ensure Chinese semicolon
-      .replace(/：/g, '：') // Ensure Chinese colon
-      
-      // Normalize quotes
-      .replace(/"/g, '"')
-      .replace(/"/g, '"')
-      .replace(/'/g, "'")
-      .replace(/'/g, "'")
-      
-      // Clean up whitespace
-      .replace(/\s+/g, ' ')
-      .replace(/\n\s*\n/g, '\n\n')
-      .trim()
+    return (
+      text
+        // Convert full-width numbers and letters to half-width
+        .replace(/[０-９]/g, char =>
+          String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+        )
+        .replace(/[Ａ-Ｚａ-ｚ]/g, char =>
+          String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+        )
+
+        // Normalize punctuation
+        .replace(/，/g, '，') // Ensure Chinese comma
+        .replace(/。/g, '。') // Ensure Chinese period
+        .replace(/！/g, '！') // Ensure Chinese exclamation
+        .replace(/？/g, '？') // Ensure Chinese question mark
+        .replace(/；/g, '；') // Ensure Chinese semicolon
+        .replace(/：/g, '：') // Ensure Chinese colon
+
+        // Normalize quotes
+        .replace(/"/g, '"')
+        .replace(/"/g, '"')
+        .replace(/'/g, "'")
+        .replace(/'/g, "'")
+
+        // Clean up whitespace
+        .replace(/\s+/g, ' ')
+        .replace(/\n\s*\n/g, '\n\n')
+        .trim()
+    )
   }
 
   /**
@@ -447,28 +466,28 @@ ${text}
     switch (operation.type) {
       case 'merge':
         return this.mergeScenes(updatedScenes, operation.scene_ids)
-      
+
       case 'split':
         return this.splitScene(
           updatedScenes,
           operation.scene_ids[0],
           operation.split_position || 0
         )
-      
+
       case 'reorder':
         return this.reorderScenes(
           updatedScenes,
           operation.scene_ids[0],
           operation.new_index || 0
         )
-      
+
       case 'update':
         return this.updateScene(
           updatedScenes,
           operation.scene_ids[0],
           operation.new_text || ''
         )
-      
+
       default:
         throw new Error(`Unsupported operation type: ${operation.type}`)
     }
@@ -490,15 +509,15 @@ ${text}
 
     // Sort by index
     scenesToMerge.sort((a, b) => a.index - b.index)
-    
+
     // Create merged scene
     const mergedText = scenesToMerge.map(scene => scene.text).join(' ')
     const firstScene = scenesToMerge[0]
-    
+
     // Create new scenes array with merged scene in correct position
     const result: SceneData[] = []
     let mergedSceneAdded = false
-    
+
     for (const scene of scenes) {
       if (sceneIds.includes(scene.id)) {
         // Skip scenes that are being merged, but add merged scene at first occurrence
@@ -622,7 +641,10 @@ ${text}
   /**
    * Validate scenes meet length requirements
    */
-  validateScenes(scenes: SceneData[], config?: Partial<SegmentationConfig>): {
+  validateScenes(
+    scenes: SceneData[],
+    config?: Partial<SegmentationConfig>
+  ): {
     valid: boolean
     errors: string[]
     warnings: string[]
@@ -633,13 +655,17 @@ ${text}
 
     for (const scene of scenes) {
       if (scene.text.length < validationConfig.min_length) {
-        warnings.push(`Scene ${scene.index} is too short (${scene.text.length} < ${validationConfig.min_length})`)
+        warnings.push(
+          `Scene ${scene.index} is too short (${scene.text.length} < ${validationConfig.min_length})`
+        )
       }
-      
+
       if (scene.text.length > validationConfig.max_length) {
-        errors.push(`Scene ${scene.index} is too long (${scene.text.length} > ${validationConfig.max_length})`)
+        errors.push(
+          `Scene ${scene.index} is too long (${scene.text.length} > ${validationConfig.max_length})`
+        )
       }
-      
+
       if (!scene.text.trim()) {
         errors.push(`Scene ${scene.index} is empty`)
       }

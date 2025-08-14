@@ -39,7 +39,7 @@ export class FileUploadService {
    */
   async parseFile(file: File): Promise<ParsedContent> {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase()
-    
+
     try {
       switch (fileExtension) {
         case '.txt':
@@ -54,7 +54,9 @@ export class FileUploadService {
       }
     } catch (error) {
       console.error('File parsing error:', error)
-      throw new Error(`File parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `File parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -84,15 +86,17 @@ export class FileUploadService {
     try {
       const arrayBuffer = await file.arrayBuffer()
       const result = await mammoth.extractRawText({ arrayBuffer })
-      
+
       if (result.messages.length > 0) {
         console.warn('DOCX parsing warnings:', result.messages)
       }
-      
+
       return this.parseTextContent(result.value)
     } catch (error) {
       console.error('DOCX parsing error:', error)
-      throw new Error(`Failed to parse DOCX file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to parse DOCX file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -104,11 +108,13 @@ export class FileUploadService {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
       const data = await pdfParse(buffer)
-      
+
       return this.parseTextContent(data.text)
     } catch (error) {
       console.error('PDF parsing error:', error)
-      throw new Error(`Failed to parse PDF file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to parse PDF file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -118,16 +124,16 @@ export class FileUploadService {
   cleanAndNormalizeText(text: string): string {
     // First normalize line breaks
     let cleaned = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    
+
     // Remove markdown formatting for plain text processing
     cleaned = this.removeMarkdownFormatting(cleaned)
-    
+
     // Remove excessive line breaks (more than 2 consecutive)
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
-    
+
     // Remove excessive whitespace within lines, but preserve line breaks
     cleaned = cleaned.replace(/[ \t]+/g, ' ')
-    
+
     // Normalize Chinese punctuation (full-width to half-width where appropriate)
     const punctuationMap: Record<string, string> = {
       '，': ',',
@@ -159,24 +165,26 @@ export class FileUploadService {
    * Remove basic markdown formatting
    */
   private removeMarkdownFormatting(text: string): string {
-    return text
-      // Remove headers
-      .replace(/^#{1,6}\s+/gm, '')
-      // Remove bold/italic
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/__([^_]+)__/g, '$1')
-      .replace(/_([^_]+)_/g, '$1')
-      // Remove links
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      // Remove code blocks
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/`([^`]+)`/g, '$1')
-      // Remove horizontal rules
-      .replace(/^---+$/gm, '')
-      // Remove list markers
-      .replace(/^[\s]*[-*+]\s+/gm, '')
-      .replace(/^[\s]*\d+\.\s+/gm, '')
+    return (
+      text
+        // Remove headers
+        .replace(/^#{1,6}\s+/gm, '')
+        // Remove bold/italic
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/_([^_]+)_/g, '$1')
+        // Remove links
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        // Remove code blocks
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/`([^`]+)`/g, '$1')
+        // Remove horizontal rules
+        .replace(/^---+$/gm, '')
+        // Remove list markers
+        .replace(/^[\s]*[-*+]\s+/gm, '')
+        .replace(/^[\s]*\d+\.\s+/gm, '')
+    )
   }
 
   /**
@@ -185,22 +193,27 @@ export class FileUploadService {
   private countWords(text: string): number {
     // For Chinese text, count characters as words
     const chineseChars = text.match(/[\u4e00-\u9fff]/g) || []
-    
+
     // For English text, count actual words (remove Chinese chars first)
     const textWithoutChinese = text.replace(/[\u4e00-\u9fff]/g, ' ')
     const englishWords = textWithoutChinese.match(/\b[a-zA-Z]+\b/g) || []
-    
+
     return chineseChars.length + englishWords.length
   }
 
   /**
    * Segment text into scenes
    */
-  async segmentText(text: string, options: SegmentOptions): Promise<SceneSegment[]> {
+  async segmentText(
+    text: string,
+    options: SegmentOptions
+  ): Promise<SceneSegment[]> {
     if (options.use_llm_segment) {
       // TODO: Implement LLM-based segmentation using Gemini API
       // For now, fall back to rule-based segmentation
-      console.warn('LLM segmentation not yet implemented, using rule-based segmentation')
+      console.warn(
+        'LLM segmentation not yet implemented, using rule-based segmentation'
+      )
     }
 
     return this.ruleBasedSegmentation(text)
@@ -211,20 +224,22 @@ export class FileUploadService {
    */
   private ruleBasedSegmentation(text: string): SceneSegment[] {
     const scenes: SceneSegment[] = []
-    
+
     // Split by paragraphs first
     const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0)
-    
+
     let currentScene = ''
     let sceneIndex = 0
 
     for (const paragraph of paragraphs) {
       const trimmedParagraph = paragraph.trim()
-      
+
       // If adding this paragraph would exceed max length, finalize current scene
-      if (currentScene.length > 0 && 
-          (currentScene.length + trimmedParagraph.length + 2) > this.MAX_SCENE_LENGTH) {
-        
+      if (
+        currentScene.length > 0 &&
+        currentScene.length + trimmedParagraph.length + 2 >
+          this.MAX_SCENE_LENGTH
+      ) {
         // Only create scene if it meets minimum length
         if (currentScene.length >= this.MIN_SCENE_LENGTH) {
           scenes.push({
@@ -243,8 +258,10 @@ export class FileUploadService {
       }
 
       // If current scene is at ideal length and ends with sentence punctuation, finalize it
-      if (currentScene.length >= this.IDEAL_SCENE_LENGTH && 
-          /[.!?。！？]$/.test(currentScene.trim())) {
+      if (
+        currentScene.length >= this.IDEAL_SCENE_LENGTH &&
+        /[.!?。！？]$/.test(currentScene.trim())
+      ) {
         scenes.push({
           index: sceneIndex++,
           text: currentScene.trim(),
@@ -292,8 +309,11 @@ export class FileUploadService {
 
         for (let i = 0; i < sentences.length; i += 2) {
           const sentence = sentences[i] + (sentences[i + 1] || '')
-          
-          if (currentSplit.length + sentence.length > this.MAX_SCENE_LENGTH && currentSplit.length > 0) {
+
+          if (
+            currentSplit.length + sentence.length > this.MAX_SCENE_LENGTH &&
+            currentSplit.length > 0
+          ) {
             finalScenes.push({
               index: splitIndex++,
               text: currentSplit.trim(),
@@ -353,8 +373,13 @@ export class FileUploadService {
   ): Promise<string> {
     try {
       const buffer = Buffer.from(await file.arrayBuffer())
-      const key = this.storageService.generateFileKey(userId, projectId, file.name, 'original')
-      
+      const key = this.storageService.generateFileKey(
+        userId,
+        projectId,
+        file.name,
+        'original'
+      )
+
       const metadata = {
         originalName: file.name,
         size: file.size.toString(),
@@ -362,10 +387,17 @@ export class FileUploadService {
         uploadedAt: new Date().toISOString(),
       }
 
-      return await this.storageService.uploadFile(key, buffer, file.type, metadata)
+      return await this.storageService.uploadFile(
+        key,
+        buffer,
+        file.type,
+        metadata
+      )
     } catch (error) {
       console.error('Error storing uploaded file:', error)
-      throw new Error(`Failed to store uploaded file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to store uploaded file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -379,7 +411,11 @@ export class FileUploadService {
     data: any
   ): Promise<string> {
     try {
-      const key = this.storageService.generateContentKey(userId, projectId, contentType)
+      const key = this.storageService.generateContentKey(
+        userId,
+        projectId,
+        contentType
+      )
       return await this.storageService.uploadJsonFile(key, data, {
         contentType,
         projectId,
@@ -388,7 +424,9 @@ export class FileUploadService {
       })
     } catch (error) {
       console.error('Error storing processed content:', error)
-      throw new Error(`Failed to store processed content: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to store processed content: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -402,12 +440,17 @@ export class FileUploadService {
     originalFilename?: string
   ): Promise<string> {
     try {
-      const filename = originalFilename ? 
-        `cleaned_${originalFilename.replace(/\.[^/.]+$/, '.txt')}` : 
-        'cleaned_content.txt'
-      
-      const key = this.storageService.generateFileKey(userId, projectId, filename, 'processed')
-      
+      const filename = originalFilename
+        ? `cleaned_${originalFilename.replace(/\.[^/.]+$/, '.txt')}`
+        : 'cleaned_content.txt'
+
+      const key = this.storageService.generateFileKey(
+        userId,
+        projectId,
+        filename,
+        'processed'
+      )
+
       return await this.storageService.uploadTextFile(key, cleanedText, {
         originalFilename: originalFilename || 'direct_input',
         processedAt: new Date().toISOString(),
@@ -415,7 +458,9 @@ export class FileUploadService {
       })
     } catch (error) {
       console.error('Error storing cleaned text:', error)
-      throw new Error(`Failed to store cleaned text: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to store cleaned text: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 }

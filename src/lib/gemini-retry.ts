@@ -27,10 +27,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 /**
  * Calculate delay for retry attempt with backoff strategy
  */
-export function calculateDelay(
-  attempt: number,
-  config: RetryConfig
-): number {
+export function calculateDelay(attempt: number, config: RetryConfig): number {
   let delay = config.baseDelay
 
   switch (config.backoffStrategy) {
@@ -91,7 +88,10 @@ export async function withRetry<T>(
       lastError = error as GeminiError
 
       // If not retryable or max attempts reached, throw immediately
-      if (!isRetryableError(lastError, config) || attempt === config.maxAttempts) {
+      if (
+        !isRetryableError(lastError, config) ||
+        attempt === config.maxAttempts
+      ) {
         throw lastError
       }
 
@@ -162,7 +162,7 @@ export class ConcurrencyController {
     return new Promise((resolve, reject) => {
       const executeOperation = async () => {
         this.activeRequests++
-        
+
         try {
           const result = await operation()
           resolve(result)

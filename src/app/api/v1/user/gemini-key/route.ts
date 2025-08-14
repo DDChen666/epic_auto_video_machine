@@ -20,7 +20,7 @@ const ValidateKeySchema = z.object({
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -29,18 +29,18 @@ export async function GET() {
     }
 
     const status = await GeminiKeyManager.getApiKeyStatus(session.user.id)
-    
+
     return NextResponse.json({
       success: true,
       data: status,
     })
   } catch (error) {
     console.error('Error getting Gemini API key status:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to get API key status' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get API key status',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )
@@ -54,7 +54,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validation = SetKeySchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     const { apiKey } = validation.data
     const result = await GeminiKeyManager.setBYOApiKey(session.user.id, apiKey)
-    
+
     if (!result.success) {
       return NextResponse.json(
         {
@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error setting Gemini API key:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to set API key' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to set API key',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -122,18 +122,18 @@ export async function DELETE() {
     }
 
     await GeminiKeyManager.removeBYOApiKey(session.user.id)
-    
+
     return NextResponse.json({
       success: true,
       message: 'API key removed successfully',
     })
   } catch (error) {
     console.error('Error removing Gemini API key:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to remove API key' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to remove API key',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )
@@ -147,7 +147,7 @@ export async function DELETE() {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -157,7 +157,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const validation = ValidateKeySchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -171,18 +171,18 @@ export async function PUT(request: NextRequest) {
 
     const { apiKey } = validation.data
     const result = await GeminiKeyManager.validateApiKey(apiKey)
-    
+
     return NextResponse.json({
       success: true,
       data: result,
     })
   } catch (error) {
     console.error('Error validating Gemini API key:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to validate API key' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to validate API key',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )

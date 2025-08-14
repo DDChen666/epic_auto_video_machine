@@ -92,7 +92,14 @@ describe('/api/v1/projects', () => {
     it('should handle query parameters correctly', async () => {
       mockProjectService.listProjects.mockResolvedValue({
         projects: [],
-        pagination: { page: 2, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: true },
+        pagination: {
+          page: 2,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: true,
+        },
       })
 
       const request = new NextRequest(
@@ -112,7 +119,9 @@ describe('/api/v1/projects', () => {
     })
 
     it('should handle validation errors', async () => {
-      const request = new NextRequest('http://localhost:3000/api/v1/projects?page=0')
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects?page=0'
+      )
       const response = await GET(request)
       const data = await response.json()
 
@@ -227,21 +236,30 @@ describe('/api/v1/projects/[id]', () => {
 
       mockProjectService.getProject.mockResolvedValue(mockProject)
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/proj_123')
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/proj_123'
+      )
       const response = await GetProject(request, { params: { id: 'proj_123' } })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data).toEqual(mockProject)
-      expect(mockProjectService.getProject).toHaveBeenCalledWith('proj_123', true)
+      expect(mockProjectService.getProject).toHaveBeenCalledWith(
+        'proj_123',
+        true
+      )
     })
 
     it('should return 404 for non-existent project', async () => {
       mockProjectService.getProject.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/nonexistent')
-      const response = await GetProject(request, { params: { id: 'nonexistent' } })
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/nonexistent'
+      )
+      const response = await GetProject(request, {
+        params: { id: 'nonexistent' },
+      })
       const data = await response.json()
 
       expect(response.status).toBe(404)
@@ -269,11 +287,14 @@ describe('/api/v1/projects/[id]', () => {
         title: 'Updated Project',
       }
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/proj_123', {
-        method: 'PUT',
-        body: JSON.stringify(requestBody),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/proj_123',
+        {
+          method: 'PUT',
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'proj_123' } })
       const data = await response.json()
@@ -281,22 +302,28 @@ describe('/api/v1/projects/[id]', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data).toEqual(mockUpdatedProject)
-      expect(mockProjectService.updateProject).toHaveBeenCalledWith('proj_123', {
-        title: 'Updated Project',
-        description: undefined,
-        status: undefined,
-        config: undefined,
-      })
+      expect(mockProjectService.updateProject).toHaveBeenCalledWith(
+        'proj_123',
+        {
+          title: 'Updated Project',
+          description: undefined,
+          status: undefined,
+          config: undefined,
+        }
+      )
     })
 
     it('should return 404 for non-existent project', async () => {
       mockProjectService.updateProject.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/nonexistent', {
-        method: 'PUT',
-        body: JSON.stringify({ title: 'Updated' }),
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/nonexistent',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ title: 'Updated' }),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
       const response = await PUT(request, { params: { id: 'nonexistent' } })
       const data = await response.json()
@@ -311,9 +338,12 @@ describe('/api/v1/projects/[id]', () => {
     it('should delete project successfully', async () => {
       mockProjectService.deleteProject.mockResolvedValue(true)
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/proj_123', {
-        method: 'DELETE',
-      })
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/proj_123',
+        {
+          method: 'DELETE',
+        }
+      )
 
       const response = await DELETE(request, { params: { id: 'proj_123' } })
       const data = await response.json()
@@ -327,9 +357,12 @@ describe('/api/v1/projects/[id]', () => {
     it('should return 404 for non-existent project', async () => {
       mockProjectService.deleteProject.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost:3000/api/v1/projects/nonexistent', {
-        method: 'DELETE',
-      })
+      const request = new NextRequest(
+        'http://localhost:3000/api/v1/projects/nonexistent',
+        {
+          method: 'DELETE',
+        }
+      )
 
       const response = await DELETE(request, { params: { id: 'nonexistent' } })
       const data = await response.json()

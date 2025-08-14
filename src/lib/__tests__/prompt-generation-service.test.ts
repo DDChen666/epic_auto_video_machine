@@ -62,12 +62,16 @@ describe('PromptGenerationService', () => {
     mockClient = {
       generateText: jest.fn(),
       checkAvailability: jest.fn().mockResolvedValue(true),
-      getRateLimitStatus: jest.fn().mockReturnValue({ remaining: 100, resetTime: Date.now() + 3600000 }),
+      getRateLimitStatus: jest
+        .fn()
+        .mockReturnValue({ remaining: 100, resetTime: Date.now() + 3600000 }),
     }
 
     // Mock the GeminiClient constructor
     ;(GeminiClient as any).mockImplementation(() => mockClient)
-    ;(GeminiClient as any).createWithBYOKey = jest.fn().mockResolvedValue(mockClient)
+    ;(GeminiClient as any).createWithBYOKey = jest
+      .fn()
+      .mockResolvedValue(mockClient)
 
     service = new PromptGenerationService(mockClient as any)
   })
@@ -76,22 +80,30 @@ describe('PromptGenerationService', () => {
     it('should generate visual prompts for multiple scenes', async () => {
       // Mock visual elements extraction
       mockClient.generateText
-        .mockResolvedValueOnce(JSON.stringify({
-          subject: ['女孩'],
-          environment: ['公園'],
-          camera: ['medium shot'],
-          lighting: ['陽光'],
-          mood: ['愉快'],
-        }))
-        .mockResolvedValueOnce('beautiful girl walking in park, bright sunlight, cheerful mood, professional photography')
-        .mockResolvedValueOnce(JSON.stringify({
-          subject: ['人們'],
-          environment: ['城市街道'],
-          camera: ['wide shot'],
-          lighting: ['霓虹燈'],
-          mood: ['匆忙'],
-        }))
-        .mockResolvedValueOnce('city street at night, neon lights, people walking, cinematic lighting, urban atmosphere')
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            subject: ['女孩'],
+            environment: ['公園'],
+            camera: ['medium shot'],
+            lighting: ['陽光'],
+            mood: ['愉快'],
+          })
+        )
+        .mockResolvedValueOnce(
+          'beautiful girl walking in park, bright sunlight, cheerful mood, professional photography'
+        )
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            subject: ['人們'],
+            environment: ['城市街道'],
+            camera: ['wide shot'],
+            lighting: ['霓虹燈'],
+            mood: ['匆忙'],
+          })
+        )
+        .mockResolvedValueOnce(
+          'city street at night, neon lights, people walking, cinematic lighting, urban atmosphere'
+        )
 
       const results = await service.generateScenePrompts(mockScenes, mockConfig)
 
@@ -102,7 +114,9 @@ describe('PromptGenerationService', () => {
         success: true,
         safetyStatus: 'safe',
       })
-      expect(results[0].visualPrompt).toContain('beautiful girl walking in park')
+      expect(results[0].visualPrompt).toContain(
+        'beautiful girl walking in park'
+      )
       expect(results[0].visualElements.subject).toContain('女孩')
       expect(results[0].visualElements.environment).toContain('公園')
     })
@@ -125,17 +139,24 @@ describe('PromptGenerationService', () => {
     it('should apply safety filtering to generated prompts', async () => {
       // Mock prompt with blocked content
       mockClient.generateText
-        .mockResolvedValueOnce(JSON.stringify({
-          subject: ['人'],
-          environment: ['場景'],
-          camera: ['shot'],
-          lighting: ['光'],
-          mood: ['情緒'],
-        }))
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            subject: ['人'],
+            environment: ['場景'],
+            camera: ['shot'],
+            lighting: ['光'],
+            mood: ['情緒'],
+          })
+        )
         .mockResolvedValueOnce('scene with violence and inappropriate content')
-        .mockResolvedValueOnce('safe alternative scene, professional photography')
+        .mockResolvedValueOnce(
+          'safe alternative scene, professional photography'
+        )
 
-      const results = await service.generateScenePrompts([mockScenes[0]], mockConfig)
+      const results = await service.generateScenePrompts(
+        [mockScenes[0]],
+        mockConfig
+      )
 
       expect(results[0].safetyStatus).toBe('filtered')
       expect(results[0].visualPrompt).not.toContain('violence')
@@ -149,16 +170,21 @@ describe('PromptGenerationService', () => {
       }
 
       mockClient.generateText
-        .mockResolvedValueOnce(JSON.stringify({
-          subject: ['人'],
-          environment: ['場景'],
-          camera: ['shot'],
-          lighting: ['光'],
-          mood: ['情緒'],
-        }))
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            subject: ['人'],
+            environment: ['場景'],
+            camera: ['shot'],
+            lighting: ['光'],
+            mood: ['情緒'],
+          })
+        )
         .mockResolvedValueOnce('basic scene description')
 
-      const results = await service.generateScenePrompts([mockScenes[0]], darkConfig)
+      const results = await service.generateScenePrompts(
+        [mockScenes[0]],
+        darkConfig
+      )
 
       expect(results[0].visualPrompt).toContain('dark aesthetic')
       expect(results[0].visualPrompt).toContain('glass morphism')
@@ -196,8 +222,12 @@ describe('PromptGenerationService', () => {
       )
 
       expect(result.isValid).toBe(false)
-      expect(result.safetyResult.violations).toContain('Inappropriate content: violence')
-      expect(result.safetyResult.violations).toContain('Inappropriate content: inappropriate')
+      expect(result.safetyResult.violations).toContain(
+        'Inappropriate content: violence'
+      )
+      expect(result.safetyResult.violations).toContain(
+        'Inappropriate content: inappropriate'
+      )
       expect(result.suggestions).toHaveLength(3)
     })
 
@@ -220,16 +250,19 @@ describe('PromptGenerationService', () => {
       )
 
       expect(result.isValid).toBe(false)
-      expect(result.safetyResult.violations).toContain('Blocked word: custom_blocked_word')
+      expect(result.safetyResult.violations).toContain(
+        'Blocked word: custom_blocked_word'
+      )
     })
   })
 
   describe('generatePromptPreview', () => {
     it('should generate concise preview from full prompt', () => {
-      const fullPrompt = 'beautiful girl walking in park, bright sunlight, cheerful mood, professional photography, high quality'
-      
+      const fullPrompt =
+        'beautiful girl walking in park, bright sunlight, cheerful mood, professional photography, high quality'
+
       const preview = service.generatePromptPreview(fullPrompt)
-      
+
       expect(preview).toContain('beautiful')
       expect(preview).toContain('girl')
       expect(preview).toContain('walking')
@@ -239,10 +272,11 @@ describe('PromptGenerationService', () => {
     })
 
     it('should filter out common words from preview', () => {
-      const fullPrompt = 'the beautiful girl was walking with her dog and the weather was nice'
-      
+      const fullPrompt =
+        'the beautiful girl was walking with her dog and the weather was nice'
+
       const preview = service.generatePromptPreview(fullPrompt)
-      
+
       expect(preview).not.toContain('the')
       expect(preview).not.toContain('was')
       expect(preview).not.toContain('with')
@@ -295,15 +329,19 @@ describe('PromptGenerationService', () => {
 
   describe('visual elements extraction', () => {
     it('should extract visual elements from Chinese text', async () => {
-      mockClient.generateText.mockResolvedValueOnce(JSON.stringify({
-        subject: ['女孩', '狗'],
-        environment: ['公園', '草地'],
-        camera: ['medium shot', 'close up'],
-        lighting: ['陽光', '自然光'],
-        mood: ['快樂', '輕鬆'],
-      }))
+      mockClient.generateText.mockResolvedValueOnce(
+        JSON.stringify({
+          subject: ['女孩', '狗'],
+          environment: ['公園', '草地'],
+          camera: ['medium shot', 'close up'],
+          lighting: ['陽光', '自然光'],
+          mood: ['快樂', '輕鬆'],
+        })
+      )
 
-      const elements = await (service as any).extractVisualElements('一個女孩和她的狗在公園的草地上玩耍，陽光明媚，氣氛輕鬆愉快')
+      const elements = await (service as any).extractVisualElements(
+        '一個女孩和她的狗在公園的草地上玩耍，陽光明媚，氣氛輕鬆愉快'
+      )
 
       expect(elements.subject).toContain('女孩')
       expect(elements.subject).toContain('狗')
@@ -316,7 +354,9 @@ describe('PromptGenerationService', () => {
     it('should use fallback extraction when LLM fails', async () => {
       mockClient.generateText.mockRejectedValue(new Error('API Error'))
 
-      const elements = await (service as any).extractVisualElements('一個人在家裡看書，燈光明亮')
+      const elements = await (service as any).extractVisualElements(
+        '一個人在家裡看書，燈光明亮'
+      )
 
       expect(elements.subject).toContain('人')
       expect(elements.environment).toContain('家')
@@ -328,8 +368,11 @@ describe('PromptGenerationService', () => {
   describe('safety filtering', () => {
     it('should detect built-in blocked words', async () => {
       const prompt = 'scene with violence and weapons'
-      
-      const result = await (service as any).applySafetyFilter(prompt, mockConfig.safety)
+
+      const result = await (service as any).applySafetyFilter(
+        prompt,
+        mockConfig.safety
+      )
 
       expect(result.isSafe).toBe(false)
       expect(result.violations).toContain('Inappropriate content: violence')
@@ -342,8 +385,11 @@ describe('PromptGenerationService', () => {
         blocked_words: ['custom_word'],
       }
       const prompt = 'scene with custom_word content'
-      
-      const result = await (service as any).applySafetyFilter(prompt, customSafety)
+
+      const result = await (service as any).applySafetyFilter(
+        prompt,
+        customSafety
+      )
 
       expect(result.isSafe).toBe(false)
       expect(result.violations).toContain('Blocked word: custom_word')
@@ -351,8 +397,11 @@ describe('PromptGenerationService', () => {
 
     it('should pass safe content', async () => {
       const prompt = 'beautiful landscape with mountains and trees'
-      
-      const result = await (service as any).applySafetyFilter(prompt, mockConfig.safety)
+
+      const result = await (service as any).applySafetyFilter(
+        prompt,
+        mockConfig.safety
+      )
 
       expect(result.isSafe).toBe(true)
       expect(result.violations).toHaveLength(0)
@@ -360,12 +409,15 @@ describe('PromptGenerationService', () => {
 
     it('should generate safe alternatives for unsafe content', async () => {
       const prompt = 'scene with violence'
-      
+
       mockClient.generateText
         .mockResolvedValueOnce('safe alternative scene')
         .mockResolvedValueOnce('alternative 1\nalternative 2\nalternative 3')
 
-      const result = await (service as any).applySafetyFilter(prompt, mockConfig.safety)
+      const result = await (service as any).applySafetyFilter(
+        prompt,
+        mockConfig.safety
+      )
 
       expect(result.isSafe).toBe(false)
       expect(result.filteredPrompt).toBe('safe alternative scene')
@@ -392,9 +444,14 @@ describe('PromptGenerationService', () => {
     })
 
     it('should provide fallback prompts when all generation fails', async () => {
-      mockClient.generateText.mockRejectedValue(new Error('Complete API failure'))
+      mockClient.generateText.mockRejectedValue(
+        new Error('Complete API failure')
+      )
 
-      const results = await service.generateScenePrompts([mockScenes[0]], mockConfig)
+      const results = await service.generateScenePrompts(
+        [mockScenes[0]],
+        mockConfig
+      )
 
       expect(results[0].success).toBe(false)
       expect(results[0].visualPrompt).toContain('professional photography')

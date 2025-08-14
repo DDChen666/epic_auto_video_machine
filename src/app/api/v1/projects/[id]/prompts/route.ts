@@ -56,7 +56,7 @@ export async function POST(
       email: session.user.email || '',
     })
     const project = await projectService.getProject(projectId)
-    
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: 'Project not found' },
@@ -65,7 +65,11 @@ export async function POST(
     }
 
     // Validate scenes
-    if (!body.scenes || !Array.isArray(body.scenes) || body.scenes.length === 0) {
+    if (
+      !body.scenes ||
+      !Array.isArray(body.scenes) ||
+      body.scenes.length === 0
+    ) {
       return NextResponse.json(
         { success: false, error: 'Scenes are required' },
         { status: 400 }
@@ -94,7 +98,10 @@ export async function POST(
     }
 
     // Generate prompts for all scenes
-    const results = await promptService.generateScenePrompts(body.scenes, config)
+    const results = await promptService.generateScenePrompts(
+      body.scenes,
+      config
+    )
 
     // Update project with generated prompts
     await projectService.updateScenePrompts(projectId, results)
@@ -104,13 +111,12 @@ export async function POST(
       data: results,
       message: `Generated prompts for ${results.length} scenes`,
     })
-
   } catch (error) {
     console.error('Prompt generation error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error',
       },
       { status: 500 }
     )
@@ -125,12 +131,16 @@ export async function POST(
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse<{
-  isValid: boolean
-  safetyViolations?: string[]
-  suggestions?: string[]
-  filteredPrompt?: string
-}>>> {
+): Promise<
+  NextResponse<
+    ApiResponse<{
+      isValid: boolean
+      safetyViolations?: string[]
+      suggestions?: string[]
+      filteredPrompt?: string
+    }>
+  >
+> {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -150,7 +160,7 @@ export async function PUT(
       email: session.user.email || '',
     })
     const project = await projectService.getProject(projectId)
-    
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: 'Project not found' },
@@ -185,13 +195,12 @@ export async function PUT(
         filteredPrompt: validation.safetyResult.filteredPrompt,
       },
     })
-
   } catch (error) {
     console.error('Prompt validation error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error',
       },
       { status: 500 }
     )
@@ -206,12 +215,18 @@ export async function PUT(
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse<Array<{
-  sceneIndex: number
-  preview: string
-  fullPrompt: string
-  safetyStatus: 'safe' | 'filtered' | 'replaced'
-}>>>> {
+): Promise<
+  NextResponse<
+    ApiResponse<
+      Array<{
+        sceneIndex: number
+        preview: string
+        fullPrompt: string
+        safetyStatus: 'safe' | 'filtered' | 'replaced'
+      }>
+    >
+  >
+> {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -229,8 +244,11 @@ export async function GET(
       userRole: 'USER' as any,
       email: session.user.email || '',
     })
-    const project = await projectService.getProjectWithScenes(projectId, session.user.id)
-    
+    const project = await projectService.getProjectWithScenes(
+      projectId,
+      session.user.id
+    )
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: 'Project not found' },
@@ -255,13 +273,12 @@ export async function GET(
       success: true,
       data: previews,
     })
-
   } catch (error) {
     console.error('Prompt preview error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error',
       },
       { status: 500 }
     )

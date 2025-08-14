@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 /**
@@ -53,12 +58,14 @@ export class StorageService {
       })
 
       await this.s3Client.send(command)
-      
+
       // Return the storage URI
       return `r2://${this.bucketName}/${key}`
     } catch (error) {
       console.error('Error uploading file to R2:', error)
-      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -100,7 +107,9 @@ export class StorageService {
       return await getSignedUrl(this.s3Client, command, { expiresIn })
     } catch (error) {
       console.error('Error generating signed URL:', error)
-      throw new Error(`Failed to generate signed URL: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to generate signed URL: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -117,14 +126,21 @@ export class StorageService {
       await this.s3Client.send(command)
     } catch (error) {
       console.error('Error deleting file from R2:', error)
-      throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
   /**
    * Generate storage key for uploaded files
    */
-  generateFileKey(userId: string, projectId: string, filename: string, type: 'original' | 'processed' = 'original'): string {
+  generateFileKey(
+    userId: string,
+    projectId: string,
+    filename: string,
+    type: 'original' | 'processed' = 'original'
+  ): string {
     const timestamp = Date.now()
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_')
     return `uploads/${userId}/${projectId}/${type}/${timestamp}_${sanitizedFilename}`
@@ -133,7 +149,11 @@ export class StorageService {
   /**
    * Generate storage key for processed content
    */
-  generateContentKey(userId: string, projectId: string, contentType: 'scenes' | 'prompts' | 'metadata'): string {
+  generateContentKey(
+    userId: string,
+    projectId: string,
+    contentType: 'scenes' | 'prompts' | 'metadata'
+  ): string {
     const timestamp = Date.now()
     return `content/${userId}/${projectId}/${contentType}/${timestamp}.json`
   }
@@ -155,7 +175,9 @@ export class StorageService {
   async healthCheck(): Promise<boolean> {
     try {
       // Try to list objects in the bucket (with limit 1)
-      const { S3Client, ListObjectsV2Command } = await import('@aws-sdk/client-s3')
+      const { S3Client, ListObjectsV2Command } = await import(
+        '@aws-sdk/client-s3'
+      )
       const command = new ListObjectsV2Command({
         Bucket: this.bucketName,
         MaxKeys: 1,

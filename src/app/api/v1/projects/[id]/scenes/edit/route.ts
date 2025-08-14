@@ -3,7 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SceneSegmentationService } from '@/lib/scene-segmentation-service'
 import { ProjectService } from '@/lib/project-service'
-import { validateRequest, createErrorResponse, createSuccessResponse } from '@/lib/api-utils'
+import {
+  validateRequest,
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api-utils'
 import { z } from 'zod'
 
 // Scene edit operation validation schema
@@ -28,7 +32,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return createErrorResponse('Unauthorized', 401)
+      return createErrorResponse('UNAUTHORIZED', 'Unauthorized', 401)
     }
 
     const projectId = params.id
@@ -95,13 +99,16 @@ export async function POST(
     })
   } catch (error) {
     console.error('Scene edit error:', error)
-    
+
     // Handle specific error types
     if (error instanceof Error) {
       if (error.message.includes('not found')) {
         return createErrorResponse(error.message, 404)
       }
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      if (
+        error.message.includes('Invalid') ||
+        error.message.includes('required')
+      ) {
         return createErrorResponse(error.message, 400)
       }
     }
@@ -119,20 +126,22 @@ function validateEditOperation(operation: any, scenes: any[]): string | null {
       if (operation.scene_ids.length < 2) {
         return 'Merge operation requires at least 2 scenes'
       }
-      
+
       // Check if all scene IDs exist
       const existingIds = scenes.map(s => s.id)
-      const missingIds = operation.scene_ids.filter((id: string) => !existingIds.includes(id))
+      const missingIds = operation.scene_ids.filter(
+        (id: string) => !existingIds.includes(id)
+      )
       if (missingIds.length > 0) {
         return `Scene IDs not found: ${missingIds.join(', ')}`
       }
-      
+
       // Check if scenes are adjacent (for better UX)
       const sceneIndices = operation.scene_ids
         .map((id: string) => scenes.find(s => s.id === id)?.index)
         .filter((index: number | undefined) => index !== undefined)
         .sort((a: number, b: number) => a - b)
-      
+
       for (let i = 1; i < sceneIndices.length; i++) {
         if (sceneIndices[i] - sceneIndices[i - 1] > 1) {
           return 'Merge operation works best with adjacent scenes'
@@ -144,16 +153,16 @@ function validateEditOperation(operation: any, scenes: any[]): string | null {
       if (operation.scene_ids.length !== 1) {
         return 'Split operation requires exactly one scene ID'
       }
-      
+
       if (!operation.split_position || operation.split_position <= 0) {
         return 'Split operation requires a valid split position'
       }
-      
+
       const sceneToSplit = scenes.find(s => s.id === operation.scene_ids[0])
       if (!sceneToSplit) {
         return 'Scene to split not found'
       }
-      
+
       if (operation.split_position >= sceneToSplit.text.length) {
         return 'Split position is beyond scene text length'
       }
@@ -163,15 +172,15 @@ function validateEditOperation(operation: any, scenes: any[]): string | null {
       if (operation.scene_ids.length !== 1) {
         return 'Reorder operation requires exactly one scene ID'
       }
-      
+
       if (operation.new_index === undefined || operation.new_index < 0) {
         return 'Reorder operation requires a valid new index'
       }
-      
+
       if (operation.new_index >= scenes.length) {
         return 'New index is out of bounds'
       }
-      
+
       const sceneToReorder = scenes.find(s => s.id === operation.scene_ids[0])
       if (!sceneToReorder) {
         return 'Scene to reorder not found'
@@ -182,11 +191,11 @@ function validateEditOperation(operation: any, scenes: any[]): string | null {
       if (operation.scene_ids.length !== 1) {
         return 'Update operation requires exactly one scene ID'
       }
-      
+
       if (!operation.new_text || operation.new_text.trim().length === 0) {
         return 'Update operation requires new text'
       }
-      
+
       const sceneToUpdate = scenes.find(s => s.id === operation.scene_ids[0])
       if (!sceneToUpdate) {
         return 'Scene to update not found'

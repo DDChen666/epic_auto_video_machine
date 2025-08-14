@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai'
+import {
+  GoogleGenerativeAI,
+  GenerativeModel,
+  GenerationConfig,
+} from '@google/generative-ai'
 import { UserService } from './user-service'
 
 // Model constants (centralized management for easy upgrades)
@@ -20,7 +24,7 @@ export const FREE_TIER_LIMITS = {
 // Aspect ratio mapping for image generation
 export const ASPECT_RATIOS = {
   '9:16': '9:16',
-  '16:9': '16:9', 
+  '16:9': '16:9',
   '1:1': '1:1',
 } as const
 
@@ -29,7 +33,7 @@ export type AspectRatio = keyof typeof ASPECT_RATIOS
 // Voice configuration for TTS
 export const VOICE_CONFIG = {
   male: 'Kore',
-  female: 'Puck', 
+  female: 'Puck',
   natural: 'Kore', // Default to Kore
 } as const
 
@@ -38,7 +42,7 @@ export type VoiceType = keyof typeof VOICE_CONFIG
 // Error types for classification
 export enum GeminiErrorType {
   INVALID_API_KEY = 'INVALID_API_KEY',
-  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED', 
+  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
   RATE_LIMIT = 'RATE_LIMIT',
   CONTENT_POLICY = 'CONTENT_POLICY',
   TIMEOUT = 'TIMEOUT',
@@ -109,7 +113,7 @@ export class GeminiClient {
     try {
       // Try to get user's BYO API key first
       const byoKey = await UserService.getBYOApiKey(userId, 'gemini')
-      
+
       return new GeminiClient({
         apiKey: byoKey || undefined,
         userId,
@@ -126,7 +130,7 @@ export class GeminiClient {
   async checkAvailability(): Promise<boolean> {
     try {
       const model = this.genAI.getGenerativeModel({ model: GEMINI_MODELS.TEXT })
-      
+
       // Simple test request to check connectivity
       const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: 'test' }] }],
@@ -149,7 +153,7 @@ export class GeminiClient {
   ): Promise<string> {
     await this.checkRateLimit('TEXT')
 
-    const model = this.genAI.getGenerativeModel({ 
+    const model = this.genAI.getGenerativeModel({
       model: GEMINI_MODELS.TEXT,
       generationConfig: {
         temperature: options.temperature ?? 0.7,
@@ -166,7 +170,7 @@ export class GeminiClient {
 
       const response = result.response
       const text = response.text()
-      
+
       if (!text) {
         throw new Error('Empty response from Gemini Text API')
       }
@@ -187,25 +191,29 @@ export class GeminiClient {
   ): Promise<string> {
     await this.checkRateLimit('IMAGE')
 
-    const model = this.genAI.getGenerativeModel({ 
+    const model = this.genAI.getGenerativeModel({
       model: GEMINI_MODELS.IMAGE,
     })
 
     try {
       const result = await model.generateContent({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Generate an image: ${prompt}. Aspect ratio: ${options.aspectRatio}`
-          }]
-        }],
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `Generate an image: ${prompt}. Aspect ratio: ${options.aspectRatio}`,
+              },
+            ],
+          },
+        ],
         generationConfig: {
           maxOutputTokens: 4096,
         },
       })
 
       const response = result.response
-      
+
       // Extract image data from response
       // Note: This is a simplified implementation
       // The actual implementation would need to handle the image data properly
@@ -232,7 +240,7 @@ export class GeminiClient {
   ): Promise<ArrayBuffer> {
     await this.checkRateLimit('TTS')
 
-    const model = this.genAI.getGenerativeModel({ 
+    const model = this.genAI.getGenerativeModel({
       model: GEMINI_MODELS.TTS,
     })
 
@@ -240,12 +248,16 @@ export class GeminiClient {
       // Note: This is a simplified implementation
       // The actual TTS implementation would use the proper TTS API
       const result = await model.generateContent({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Convert to speech with voice ${options.voice}: ${text}`
-          }]
-        }],
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `Convert to speech with voice ${options.voice}: ${text}`,
+              },
+            ],
+          },
+        ],
       })
 
       // Placeholder for actual audio data
@@ -259,26 +271,30 @@ export class GeminiClient {
   /**
    * Rate limiting check
    */
-  private async checkRateLimit(apiType: keyof typeof FREE_TIER_LIMITS): Promise<void> {
+  private async checkRateLimit(
+    apiType: keyof typeof FREE_TIER_LIMITS
+  ): Promise<void> {
     const now = Date.now()
     const windowMs = 60 * 1000 // 1 minute window
     const limit = FREE_TIER_LIMITS[apiType].rpm
 
     const key = `${this.config.userId || 'platform'}_${apiType}`
     const requests = this.rateLimiter.get(key) || []
-    
+
     // Remove requests outside the window
     const validRequests = requests.filter(time => now - time < windowMs)
-    
+
     if (validRequests.length >= limit) {
       const oldestRequest = Math.min(...validRequests)
       const waitTime = windowMs - (now - oldestRequest)
-      
-      const error = new Error(`Rate limit exceeded for ${apiType}. Try again in ${Math.ceil(waitTime / 1000)} seconds.`) as GeminiError
+
+      const error = new Error(
+        `Rate limit exceeded for ${apiType}. Try again in ${Math.ceil(waitTime / 1000)} seconds.`
+      ) as GeminiError
       error.type = GeminiErrorType.RATE_LIMIT
       error.retryable = true
       error.retryAfter = waitTime
-      
+
       throw error
     }
 
@@ -300,24 +316,36 @@ export class GeminiClient {
    */
   private handleError(error: any): GeminiError {
     const geminiError = error as GeminiError
-    
+
     // Classify error based on message/status - order matters for specificity
     if (error.message?.includes('API key')) {
       geminiError.type = GeminiErrorType.INVALID_API_KEY
       geminiError.retryable = false
-    } else if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+    } else if (
+      error.message?.includes('429') ||
+      error.message?.includes('rate limit')
+    ) {
       geminiError.type = GeminiErrorType.RATE_LIMIT
       geminiError.retryable = true
-    } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
+    } else if (
+      error.message?.includes('quota') ||
+      error.message?.includes('limit')
+    ) {
       geminiError.type = GeminiErrorType.QUOTA_EXCEEDED
       geminiError.retryable = true
-    } else if (error.message?.includes('content') || error.message?.includes('policy')) {
+    } else if (
+      error.message?.includes('content') ||
+      error.message?.includes('policy')
+    ) {
       geminiError.type = GeminiErrorType.CONTENT_POLICY
       geminiError.retryable = false
     } else if (error.message?.includes('timeout')) {
       geminiError.type = GeminiErrorType.TIMEOUT
       geminiError.retryable = true
-    } else if (error.message?.includes('region') || error.message?.includes('unavailable')) {
+    } else if (
+      error.message?.includes('region') ||
+      error.message?.includes('unavailable')
+    ) {
       geminiError.type = GeminiErrorType.REGION_UNAVAILABLE
       geminiError.retryable = true
     } else {
@@ -344,9 +372,8 @@ export class GeminiClient {
     const validRequests = requests.filter(time => now - time < windowMs)
 
     const remaining = Math.max(0, limit - validRequests.length)
-    const resetTime = validRequests.length > 0 
-      ? Math.min(...validRequests) + windowMs 
-      : now
+    const resetTime =
+      validRequests.length > 0 ? Math.min(...validRequests) + windowMs : now
 
     return { remaining, resetTime }
   }

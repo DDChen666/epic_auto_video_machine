@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
 
         if (dbUser) {
           token.role = dbUser.role
-          token.settings = dbUser.settings as UserSettings
+          token.settings = dbUser.settings as any // UserSettings type will be defined later
         } else {
           // New user, set default role
           token.role = UserRole.USER
@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
               blocked_words: [],
               error_strategy: 'skip',
             },
-          } as UserSettings
+          } as any // UserSettings type will be defined later
         }
       }
 

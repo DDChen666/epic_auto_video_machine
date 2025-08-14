@@ -12,7 +12,7 @@ import { HTTP_STATUS } from '@/lib/api-utils'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -22,16 +22,17 @@ export async function GET(request: NextRequest) {
 
     // Get user's Gemini service instance
     const service = await GeminiService.create(session.user.id)
-    
+
     // Get comprehensive health check
     const healthStatus = await service.healthCheck()
-    
+
     // Get regional availability
-    const regionalAvailability = await GeminiKeyManager.checkRegionalAvailability()
-    
+    const regionalAvailability =
+      await GeminiKeyManager.checkRegionalAvailability()
+
     // Get user's BYO key status
     const keyStatus = await GeminiKeyManager.getApiKeyStatus(session.user.id)
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -43,11 +44,11 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error getting Gemini health status:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to get service health status' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get service health status',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Authentication required' },
@@ -87,18 +88,18 @@ export async function POST(request: NextRequest) {
       session.user.id,
       { textRequests, imageRequests, ttsRequests }
     )
-    
+
     return NextResponse.json({
       success: true,
       data: quotaCheck,
     })
   } catch (error) {
     console.error('Error checking quota:', error)
-    
+
     return NextResponse.json(
-      { 
-        error: 'INTERNAL_SERVER_ERROR', 
-        message: 'Failed to check quota' 
+      {
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to check quota',
       },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
     )

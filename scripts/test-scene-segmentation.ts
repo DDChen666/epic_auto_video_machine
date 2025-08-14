@@ -36,10 +36,14 @@ async function testSceneSegmentation() {
     console.log(`✅ Segmented into ${result1.scenes.length} scenes`)
     console.log(`📊 Method: ${result1.metadata.segmentation_method}`)
     console.log(`⏱️  Processing time: ${result1.metadata.processing_time}ms`)
-    console.log(`📏 Average scene length: ${result1.metadata.average_scene_length} characters\n`)
+    console.log(
+      `📏 Average scene length: ${result1.metadata.average_scene_length} characters\n`
+    )
 
     result1.scenes.forEach((scene, index) => {
-      console.log(`Scene ${index + 1} (${scene.text.length} chars): ${scene.text.substring(0, 50)}...`)
+      console.log(
+        `Scene ${index + 1} (${scene.text.length} chars): ${scene.text.substring(0, 50)}...`
+      )
     })
     console.log()
   } catch (error) {
@@ -49,7 +53,7 @@ async function testSceneSegmentation() {
   // Test 2: Text normalization
   console.log('🔤 Test 2: Text normalization')
   const testText2 = '這是測試１２３ＡＢＣ，包含全形字符！你覺得怎麼樣？'
-  
+
   try {
     const result2 = await service.segmentText(testText2)
     console.log(`✅ Original: ${testText2}`)
@@ -70,15 +74,17 @@ async function testSceneSegmentation() {
     // Test merge
     const mergedScenes = await service.editScenes(testScenes, {
       type: 'merge',
-      scene_ids: ['scene_0', 'scene_1']
+      scene_ids: ['scene_0', 'scene_1'],
     })
-    console.log(`✅ Merge: ${testScenes.length} → ${mergedScenes.length} scenes`)
+    console.log(
+      `✅ Merge: ${testScenes.length} → ${mergedScenes.length} scenes`
+    )
 
     // Test split
     const splitScenes = await service.editScenes(testScenes, {
       type: 'split',
       scene_ids: ['scene_0'],
-      split_position: 5
+      split_position: 5,
     })
     console.log(`✅ Split: ${testScenes.length} → ${splitScenes.length} scenes`)
 
@@ -86,10 +92,12 @@ async function testSceneSegmentation() {
     const reorderedScenes = await service.editScenes(testScenes, {
       type: 'reorder',
       scene_ids: ['scene_2'],
-      new_index: 0
+      new_index: 0,
     })
     console.log(`✅ Reorder: Scene moved to position 0`)
-    console.log(`   New order: ${reorderedScenes.map(s => s.text.substring(0, 10)).join(' | ')}\n`)
+    console.log(
+      `   New order: ${reorderedScenes.map(s => s.text.substring(0, 10)).join(' | ')}\n`
+    )
   } catch (error) {
     console.error('❌ Test 3 failed:', error)
   }
@@ -98,7 +106,11 @@ async function testSceneSegmentation() {
   console.log('✅ Test 4: Scene validation')
   const invalidScenes = [
     { id: 'scene_0', index: 0, text: '短' }, // Too short
-    { id: 'scene_1', index: 1, text: '適當長度的場景內容，符合最小長度要求。'.repeat(3) }, // Good
+    {
+      id: 'scene_1',
+      index: 1,
+      text: '適當長度的場景內容，符合最小長度要求。'.repeat(3),
+    }, // Good
     { id: 'scene_2', index: 2, text: '' }, // Empty
   ]
 
@@ -107,12 +119,14 @@ async function testSceneSegmentation() {
     console.log(`✅ Validation result: ${validation.valid ? 'PASS' : 'FAIL'}`)
     console.log(`⚠️  Errors: ${validation.errors.length}`)
     console.log(`⚠️  Warnings: ${validation.warnings.length}`)
-    
+
     if (validation.errors.length > 0) {
       validation.errors.forEach(error => console.log(`   Error: ${error}`))
     }
     if (validation.warnings.length > 0) {
-      validation.warnings.forEach(warning => console.log(`   Warning: ${warning}`))
+      validation.warnings.forEach(warning =>
+        console.log(`   Warning: ${warning}`)
+      )
     }
     console.log()
   } catch (error) {
@@ -130,10 +144,12 @@ async function testSceneSegmentation() {
   try {
     const result5 = await customService.segmentText(testText1)
     console.log(`✅ Custom config: ${result5.scenes.length} scenes`)
-    console.log(`📏 Scene lengths: ${result5.scenes.map(s => s.text.length).join(', ')}`)
-    
-    const allWithinLimits = result5.scenes.every(scene => 
-      scene.text.length >= 50 && scene.text.length <= 150
+    console.log(
+      `📏 Scene lengths: ${result5.scenes.map(s => s.text.length).join(', ')}`
+    )
+
+    const allWithinLimits = result5.scenes.every(
+      scene => scene.text.length >= 50 && scene.text.length <= 150
     )
     console.log(`✅ All scenes within limits: ${allWithinLimits}\n`)
   } catch (error) {

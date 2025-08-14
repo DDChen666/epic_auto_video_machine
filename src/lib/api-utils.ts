@@ -270,7 +270,7 @@ export function setCorsHeaders(response: NextResponse): NextResponse {
 // Health check response
 export function healthCheckResponse(
   status: 'healthy' | 'unhealthy' = 'healthy',
-  checks?: Record<string, boolean>
+  checks?: Record<string, any>
 ): NextResponse<ApiResponse> {
   const data = {
     status,
@@ -286,7 +286,10 @@ export function healthCheckResponse(
 }
 
 // Request validation helper
-export function validateRequest<T>(schema: any, data: any): { success: true; data: T } | { success: false; errors: any } {
+export function validateRequest<T>(
+  schema: any,
+  data: any
+): { success: true; data: T } | { success: false; errors: any } {
   try {
     const validatedData = schema.parse(data)
     return { success: true, data: validatedData }
@@ -300,4 +303,12 @@ export function validateRequest<T>(schema: any, data: any): { success: true; dat
 
 // Convenience aliases for backward compatibility
 export const createSuccessResponse = successResponse
-export const createErrorResponse = errorResponse
+
+// Simplified error response for backward compatibility
+export function createErrorResponse(
+  message: string,
+  status: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  details?: any
+): NextResponse<ApiResponse> {
+  return errorResponse('ERROR', message, status, details)
+}
