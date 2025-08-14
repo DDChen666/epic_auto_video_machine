@@ -1,0 +1,215 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enums
+enum ProjectStatus {
+  DRAFT
+  READY
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum AssetType {
+  IMAGE
+  AUDIO
+  VIDEO
+  TEXT
+  JSON
+}
+
+enum UserRole {
+  USER
+  PREMIUM
+  ADMIN
+}
+
+// User model for authentication and multi-tenancy
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  role      UserRole @default(USER)
+  
+  // OAuth fields
+  accounts  Account[]
+  sessions  Session[]
+  
+  // User preferences and settings
+  settings  Json?
+  apiKeys   Json?     // Encrypted BYO API keys
+  
+  // Relations
+  projects  Project[]
+  assets    Asset[]
+  presets   Preset[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("users")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Core business models
+model Project {
+  id          String        @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  status      ProjectStatus @default(DRAFT)
+  config      Json          // ProjectConfig from design doc
+  
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs        Job[]
+  scenes      Scene[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // RLS policy will be implemented at application level
+  @@index([userId])
+  @@map("projects")
+}
+
+model Job {
+  id            String    @id @default(cuid())
+  projectId     String
+  status        JobStatus @default(QUEUED)
+  config        Json      // Job configuration
+  costEstimate  Json?     // CostEstimate from design doc
+  costActual    Json?     // CostActual from design doc
+  
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  errorDetail   Json?     // Error details and stack trace
+  
+  // Relations
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([projectId])
+  @@index([status])
+  @@map("jobs")
+}
+
+model Scene {
+  id            String  @id @default(cuid())
+  projectId     String
+  index         Int     // Scene order
+  text          String  @db.Text
+  prompt        String? @db.Text // Generated visual prompt
+  imageAssetId  String?
+  
+  // Relations
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  imageAsset    Asset?  @relation(fields: [imageAssetId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([projectId, index])
+  @@index([projectId])
+  @@map("scenes")
+}
+
+model Asset {
+  id          String    @id @default(cuid())
+  userId      String
+  type        AssetType
+  uri         String    // Storage URI (Cloudflare R2)
+  metadata    Json?     // File metadata, dimensions, etc.
+  sizeBytes   BigInt?
+  
+  // Lifecycle management
+  expiresAt   DateTime?
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenes      Scene[]   // Assets can be referenced by multiple scenes
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([expiresAt])
+  @@map("assets")
+}
+
+model Preset {
+  id        String  @id @default(cuid())
+  userId    String
+  name      String
+  config    Json    // Template configuration
+  isDefault Boolean @default(false)
+  
+  // Relations
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@map("presets")
+}
